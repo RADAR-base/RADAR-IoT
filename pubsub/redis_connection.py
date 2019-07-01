@@ -7,10 +7,10 @@ logger = logging.getLogger(__name__)
 class RedisConnection(Connection):
 
     def __init__(self, host='localhost', port='6379'):
-        super().__init__(host,port)
+        super().__init__(host, port)
 
     def connect(self) -> None:
-        logger.debug(f'Connection to Redis at {super().host}:{super().port}')
+        logger.debug(f'Connecting to Redis at {super().host}:{super().port}')
 
     def get_connection(self):
         logger.debug('Getting Redis Connection')
