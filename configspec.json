@@ -1,0 +1,37 @@
+{
+  "type": "object",
+  "properties": {
+    "sensors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "module": {
+            "type": "string"
+          },
+          "class": {
+            "type": "string"
+          },
+          "publishing_topic": {
+            "type": "string"
+          },
+          "poll_frequency_ms": {
+            "type": "integer"
+          },
+          "flush_size": {
+            "type": "integer"
+          },
+          "flush_after_s": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "expose_topic_endpoint": {
+      "type": "boolean"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+sensors:
+  - name: "coral-enviro-temperature"
+    module: "sensors.coral_enviro_temperature"
+    class: "CoralEnviroTemperatureSensor"
+    publishing_topic: "coral-enviro-temperature"
+    poll_frequency_ms: 1000
+    flush_size: 100
+    flush_after_s: 1000
+  - name: "coral-enviro-humidity"
+    module: "sensors.coral_enviro_humidity"
+    class: "CoralEnviroHumiditySensor"
+    publishing_topic: "coral-enviro-humidity"
+    poll_frequency_ms: 1000
+    flush_size: 100
+    flush_after_s: 1000
+  - name: "coral-enviro-light"
+    module: "sensors.coral_enviro_light"
+    class: "CoralEnviroLightSensor"
+    publishing_topic: "coral-enviro-light"
+    poll_frequency_ms: 1000
+    flush_size: 100
+    flush_after_s: 1000
+  - name: "th02-temperature"
+    module: "sensors.th02_temperature"
+    class: "Th02TemperatureSensor"
+    publishing_topic: "th02-temperature"
+    poll_frequency_ms: 1000
+    flush_size: 100
+    flush_after_s: 1000
+
+expose_topic_endpoint: True
