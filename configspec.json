@@ -32,6 +32,12 @@
     },
     "expose_topic_endpoint": {
       "type": "boolean"
+    },
+    "root_logger_level": {
+      "type": "string"
+    },
+    "publisher_max_threads": {
+      "type": "integer"
     }
   }
 }

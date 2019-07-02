@@ -1,15 +1,17 @@
 from pubsub.publisher import Publisher
 from pubsub.redis_connection import RedisConnection
 import logging
+from concurrent.futures import ThreadPoolExecutor
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('root')
 
 
 class RedisPublisher(Publisher):
 
-    def __init__(self, connection: RedisConnection = RedisConnection()):
-        super().__init__(connection)
+    def __init__(self, connection: RedisConnection = RedisConnection(),
+                 publisher_thread_pool: ThreadPoolExecutor = ThreadPoolExecutor(max_workers=4)):
+        super().__init__(connection, publisher_thread_pool)
 
-    async def publish(self, msg) -> None:
-        # await do publish
-        logger.debug(f'Publishing the Message ({msg}) using connection {self.__class__.__name__}')
+    def publish(self, msg) -> None:
+        # do publish
+        logger.info(f'Publishing {len(msg)} messages using connection {self.__class__.__name__}')

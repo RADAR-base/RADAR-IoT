@@ -24,3 +24,9 @@ class Configuration:
 
     def is_topic_endpoint_exposed(self):
         return self.config['expose_topic_endpoint']
+
+    def get_root_logger_level(self):
+        return self.config['root_logger_level']
+
+    def get_publisher_max_threads(self):
+        return self.config['publisher_max_threads']
