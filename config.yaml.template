@@ -31,3 +31,4 @@ sensors:
 expose_topic_endpoint: True
 root_logger_level: DEBUG
 publisher_max_threads: 5
+scheduler_max_threads: 10

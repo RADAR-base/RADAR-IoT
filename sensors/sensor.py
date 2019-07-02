@@ -28,18 +28,21 @@ class Sensor(ABC):
 
     def poll(self) -> None:
         if datetime.now().timestamp() - self._last_flush > self.flush_after_s:
-            self._flush()
+            self.flush()
         if self.queue.qsize() >= self.flush_size:
-            self._flush()
+            self.flush()
         data = self.get_data()
         self.queue.put(data)
-        logger.debug(f'Queue Size is {self.queue.qsize()}')
+        logger.debug(f'Queue Size for {self.__class__.__name__} is {self.queue.qsize()}')
 
-    # Private as it's working is internal
-    def _flush(self) -> None:
+    def flush(self) -> None:
         msgs = list()
-        for msg in range(0, self.flush_size):
-            msgs.append(self.queue.get_nowait())
+        if self.flush_size <= self.queue.qsize():
+            max_range = self.flush_size
+        else:
+            max_range = self.queue.qsize()
+        for msg in range(0, max_range):
+            msgs.append(self.queue.get())
         self._publish(msgs)
         self._last_flush = datetime.now().timestamp()
 

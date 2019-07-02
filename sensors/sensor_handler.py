@@ -35,7 +35,7 @@ class SensorHandler:
                                 sensor[FLUSH_SIZE_KEY], sensor[FLUSH_AFTER_S_KEY], publisher).instance)
 
         executors = {
-            'default': {'type': 'threadpool', 'max_workers': 20},
+            'default': {'type': 'threadpool', 'max_workers': config.get_scheduler_max_threads()},
             'processpool': ProcessPoolExecutor(max_workers=5)
         }
         self.scheduler.configure(executors=executors)
@@ -54,12 +54,17 @@ class SensorHandler:
                 pass
         except KeyboardInterrupt:
             logging.warning(f'The process {self.__class__.__name__} was interrupted. Gracefully shutting down...')
-            if self.scheduler.running:
-                self.scheduler.shutdown(wait=True)
-            self.publishing_thread_pool.shutdown(wait=True)
+            self.graceful_stop()
 
     def get_topics(self):
         return [x.topic for x in self.sensors]
+
+    def graceful_stop(self):
+        if self.scheduler.running:
+            self.scheduler.shutdown(wait=True)
+        for sensor in self.sensors:
+            sensor.flush()
+        self.publishing_thread_pool.shutdown(wait=True)
 
     @staticmethod
     def job_listener(event):

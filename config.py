@@ -30,3 +30,7 @@ class Configuration:
 
     def get_publisher_max_threads(self):
         return self.config['publisher_max_threads']
+
+    def get_scheduler_max_threads(self):
+        return self.config['scheduler_max_threads']
+        pass

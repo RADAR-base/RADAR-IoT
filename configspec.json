@@ -38,6 +38,9 @@
     },
     "publisher_max_threads": {
       "type": "integer"
+    },
+    "scheduler_max_threads": {
+      "type": "integer"
     }
   }
 }
