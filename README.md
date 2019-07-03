@@ -36,7 +36,7 @@ In particular, there are 3 major components in the framework -
         module: "sensors.your_module" 
         # Name of the class of the sensor in the module
         class: "YourSensorClass"
-        # topic to publish the data to in pub/sub
+        # topic to publish the data to in pub/sub paradigm
         publishing_topic: "your-sensor-topic" 
         # polling frequency in milliseconds 
         poll_frequency_ms: 1000 

@@ -28,9 +28,15 @@ class Configuration:
     def get_root_logger_level(self):
         return self.config['root_logger_level']
 
-    def get_publisher_max_threads(self):
-        return self.config['publisher_max_threads']
+    def get_publisher(self):
+        return self.config['publisher']
 
     def get_scheduler_max_threads(self):
         return self.config['scheduler_max_threads']
-        pass
+
+    def get_converter(self):
+        if 'converter' in self.config and 'schema_retriever' in self.config['converter']:
+            return self.config['converter']
+        else:
+            return None
+

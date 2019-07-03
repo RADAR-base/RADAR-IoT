@@ -29,15 +29,71 @@
           }
         }
       }
+    }
+  },
+  "publisher": {
+    "type": "object",
+    "properties": {
+      "module": {
+        "type": "string"
+      },
+      "class": {
+        "type": "string"
+      },
+      "connection": {
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string"
+          },
+          "class": {
+            "type": "string"
+          },
+          "host": {
+            "type": "string"
+          },
+          "port": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "converter": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "schema_retriever": {
+            "type": "object",
+            "properties": {
+              "module": {
+                "type": "string"
+              },
+              "class": {
+                "type": "string"
+              },
+              "args": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "publisher_max_threads": {
+        "type": "integer"
+      }
     },
     "expose_topic_endpoint": {
       "type": "boolean"
     },
     "root_logger_level": {
       "type": "string"
-    },
-    "publisher_max_threads": {
-      "type": "integer"
     },
     "scheduler_max_threads": {
       "type": "integer"

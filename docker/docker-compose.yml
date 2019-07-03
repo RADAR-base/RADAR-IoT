@@ -1,0 +1,7 @@
+version: '2.4'
+
+services:
+  redis:
+    image: arm32v7/redis:5.0.5-alpine
+    ports:
+      - '6379:6379'

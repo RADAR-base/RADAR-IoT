@@ -4,6 +4,8 @@ from pubsub.publisher import Publisher
 from pubsub.redis_publisher import RedisPublisher
 import queue
 import logging
+from commons.message_converter import MessageConverter
+from commons.schema import SensorBasedSchemaNamingStrategy
 
 logger = logging.getLogger('root')
 
@@ -12,8 +14,9 @@ class Sensor(ABC):
     _FLUSH_OFFSET_S = 200
     _last_flush = datetime.now().timestamp()
 
-    def __init__(self, topic, poll_freq_ms, flush_size=100, flush_after_s=2000,
-                 publisher: Publisher = RedisPublisher()):
+    def __init__(self, name, topic, poll_freq_ms, flush_size=100, flush_after_s=2000,
+                 publisher: Publisher = RedisPublisher(), converter: MessageConverter = None):
+        self.name = name
         self.topic = topic
         self.poll_freq_ms = poll_freq_ms
         self.flush_size = flush_size
@@ -23,6 +26,9 @@ class Sensor(ABC):
             self.flush_after_s = self._FLUSH_OFFSET_S + (flush_size * poll_freq_ms / 1000)
         self.publisher = publisher
         self.queue = queue.Queue(int(flush_size + flush_size / 2))
+        self.converter = converter
+        self.naming_strategy = SensorBasedSchemaNamingStrategy(prefix='', suffix='')
+        self.schema_name = self.naming_strategy.get_schema_name(name=self.name)
         super().__init__()
         logger.info(f'Successfully initialised Sensor of type : {self.__class__.__name__}')
 
@@ -48,7 +54,8 @@ class Sensor(ABC):
 
     # Private as it's working is internal
     def _publish(self, msgs) -> None:
-        self.publisher.publish_threaded(msgs)
+        self.publisher.publish_threaded(msgs, self.topic, self.converter, validate_only=True,
+                                        schema_name=self.schema_name)
 
     @abstractmethod
     def get_data(self):

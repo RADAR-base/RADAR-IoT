@@ -1,9 +1,12 @@
 anyconfig==0.9.9
+APScheduler==3.6.0
 attrs==19.1.0
 DateTime==4.3
 jsonschema==3.0.1
 pyrsistent==0.15.2
 pytz==2019.1
 PyYAML==5.1.1
+redis==3.2.1
 six==1.12.0
+tzlocal==1.5.1
 zope.interface==4.6.0

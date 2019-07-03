@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from pubsub.connection import Connection
 import logging
 from concurrent.futures import ThreadPoolExecutor
+from commons.message_converter import MessageConverter
 
 logger = logging.getLogger('root')
 
@@ -12,13 +13,15 @@ class Publisher(ABC):
         self.connection = connection
         self.publisher_thread_pool = publisher_thread_pool
         if connection.is_connected():
-            logger.debug('Connected to the ')
+            logger.debug(f'Connected to the connection {connection.__class__.__name__}')
         else:
-            raise ConnectionError(f'Connection {connection.__class__.__name__}')
+            raise ConnectionError(f'Connection failed: {connection.__class__.__name__}')
 
     @abstractmethod
-    def publish(self, msgs) -> None:
+    def publish(self, msgs: list, topic: str, converter: MessageConverter, validate_only=False,
+                schema_name=None) -> None:
         pass
 
-    def publish_threaded(self, msgs):
-        self.publisher_thread_pool.submit(self.publish, msgs)
+    def publish_threaded(self, msgs: list, topic: str, converter: MessageConverter, validate_only=False,
+                         schema_name=None):
+        self.publisher_thread_pool.submit(self.publish, msgs, topic, converter, validate_only, schema_name)
