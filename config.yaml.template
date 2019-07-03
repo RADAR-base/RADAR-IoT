@@ -52,5 +52,5 @@ converter:
       extension: '.avro'
 
 expose_topic_endpoint: True
-root_logger_level: DEBUG
+root_logger_level: INFO
 scheduler_max_threads: 10

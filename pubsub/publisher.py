@@ -13,7 +13,7 @@ class Publisher(ABC):
         self.connection = connection
         self.publisher_thread_pool = publisher_thread_pool
         if connection.is_connected():
-            logger.debug(f'Connected to the connection {connection.__class__.__name__}')
+            logger.debug(f'Using the connection {connection.__class__.__name__} for publishing.')
         else:
             raise ConnectionError(f'Connection failed: {connection.__class__.__name__}')
 
