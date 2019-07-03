@@ -1,22 +1,14 @@
-from commons.dynamic_import import DynamicImporter
 from sensors.sensor import Sensor
 import logging
-from config import Configuration
+from config import Configuration, ConfigHelper
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.executors.pool import ProcessPoolExecutor
 import apscheduler.events as aps_events
 from concurrent.futures import ThreadPoolExecutor
 from commons.message_converter import MessageConverter
-from pubsub.publisher import Publisher, Connection
+from pubsub.publisher import Publisher
 
 logger = logging.getLogger('root')
-
-MODULE_KEY = 'module'
-CLASS_KEY = 'class'
-TOPIC_KEY = 'publishing_topic'
-POLL_FREQUENCY_KEY = 'poll_frequency_ms'
-FLUSH_SIZE_KEY = 'flush_size'
-FLUSH_AFTER_S_KEY = 'flush_after_s'
 
 
 class SensorHandler:
@@ -26,14 +18,9 @@ class SensorHandler:
     publishing_thread_pool: ThreadPoolExecutor = None
 
     def __init__(self, config: Configuration):
-        self.publishing_thread_pool = ThreadPoolExecutor(max_workers=config.get_publisher()['publisher_max_threads'])
-        conn: Connection = ConfigHelper.get_connection(config)
-        self.publisher: Publisher = ConfigHelper.get_publisher(config, conn, self.publishing_thread_pool)
-
-        self.converter: MessageConverter = ConfigHelper.get_converter(config)
-
-        for sensor in config.get_sensors():
-            self.sensors.append(ConfigHelper.get_sensor(sensor, self.converter, self.publisher))
+        self.publisher: Publisher = ConfigHelper.get_publisher()
+        self.converter: MessageConverter = ConfigHelper.get_converter()
+        self.sensors = ConfigHelper.get_sensors()
 
         # We don't use ProcessPool right now for the jobs but may include in the future for compute intensive tasks.
         executors = {
@@ -68,7 +55,8 @@ class SensorHandler:
             self.scheduler.shutdown(wait=True)
         for sensor in self.sensors:
             sensor.flush()
-        self.publishing_thread_pool.shutdown(wait=True)
+        if self.publishing_thread_pool is not None:
+            self.publishing_thread_pool.shutdown(wait=True)
 
     @staticmethod
     def job_listener(event):
@@ -80,39 +68,3 @@ class SensorHandler:
         elif event.code == aps_events.EVENT_JOB_MISSED:
             logging.warning(
                 f'The Job with job id {event.job_id} was missed which was supposed to run at {event.scheduled_run_time}')
-
-
-class ConfigHelper:
-
-    @staticmethod
-    def get_converter(config) -> [MessageConverter, None]:
-        converter_conf = config.get_converter()
-        if converter_conf is not None:
-            schema_retriever = DynamicImporter(converter_conf['schema_retriever'][MODULE_KEY],
-                                               converter_conf['schema_retriever'][CLASS_KEY],
-                                               kwargs=converter_conf['schema_retriever']['args']).instance
-            return DynamicImporter(converter_conf[MODULE_KEY],
-                                   converter_conf[CLASS_KEY], schema_retriever).instance
-        else:
-            return None
-
-    @staticmethod
-    def get_connection(config) -> Connection:
-        return DynamicImporter(config.get_publisher()['connection'][MODULE_KEY],
-                               config.get_publisher()['connection'][CLASS_KEY],
-                               config.get_publisher()['connection']['host'],
-                               config.get_publisher()['connection']['port'],
-                               config.get_publisher()['connection']['user'],
-                               config.get_publisher()['connection']['password']).instance
-
-    @staticmethod
-    def get_publisher(config, conn: Connection, thread_pool: ThreadPoolExecutor) -> Publisher:
-        return DynamicImporter(config.get_publisher()[MODULE_KEY], config.get_publisher()[CLASS_KEY],
-                               conn, thread_pool).instance
-
-    @staticmethod
-    def get_sensor(sensor_config, converter: MessageConverter, publisher: Publisher) -> Sensor:
-        return DynamicImporter(sensor_config[MODULE_KEY], sensor_config[CLASS_KEY], sensor_config['name'],
-                               sensor_config[TOPIC_KEY], sensor_config[POLL_FREQUENCY_KEY],
-                               sensor_config[FLUSH_SIZE_KEY], sensor_config[FLUSH_AFTER_S_KEY], publisher,
-                               converter).instance
