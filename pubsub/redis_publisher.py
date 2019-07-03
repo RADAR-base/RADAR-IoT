@@ -17,7 +17,7 @@ class RedisPublisher(Publisher):
         super().__init__(connection, publisher_thread_pool)
 
     # if validate_only is True, then only validation is performed and no conversion.
-    def publish(self, msgs: list, topic: str, validate_only=False, schema_name=None) -> None:
+    def _publish(self, msgs: list, topic: str, validate_only=False, schema_name=None) -> None:
         if self.converter is not None and schema_name is not None and validate_only:
             # do validation
             if self.converter.validate_all(msgs, schema_name):
