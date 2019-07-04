@@ -1,6 +1,8 @@
-from pubsub.connection import Connection
 import logging
+
 import redis
+
+from pubsub.connection import Connection
 
 logger = logging.getLogger('root')
 

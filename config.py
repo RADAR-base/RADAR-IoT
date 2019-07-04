@@ -1,14 +1,16 @@
-import anyconfig
 import logging
+from concurrent.futures import ThreadPoolExecutor
+from os import environ
+from typing import List
+
+import anyconfig
+
 from commons.dynamic_import import DynamicImporter
 from commons.message_converter import MessageConverter
-from pubsub.publisher import Publisher
-from pubsub.connection import Connection
-from sensors.sensor import Sensor
-from typing import List
-from concurrent.futures import ThreadPoolExecutor
 from commons.schema import SchemaNamingStrategy, SensorBasedSchemaNamingStrategy
-from os import environ
+from pubsub.connection import Connection
+from pubsub.publisher import Publisher
+from sensors.sensor import Sensor
 
 MODULE_KEY = 'module'
 CLASS_KEY = 'class'
@@ -63,7 +65,14 @@ class Configuration:
         self.config = DEFAULT_CONF
         conf_ = anyconfig.load(file_path)
         config_spec = anyconfig.load(spec_file_path)
-        anyconfig.merge(self.config, environ.copy())
+
+        import re
+        os_environ = environ.copy()
+        re_exp = re.compile('radar_iot_.*')
+        allowed_keys = filter(re_exp.match, os_environ.keys())
+        environ_vars = {re.sub("radar_iot_", "", key, count=1): os_environ[key] for key in allowed_keys}
+
+        anyconfig.merge(self.config, environ_vars)
         anyconfig.merge(self.config, conf_)
         (rc, err) = anyconfig.validate(self.config, config_spec)
         if rc is False or err != '':

@@ -1,7 +1,7 @@
+import logging
+import queue
 from abc import ABC, abstractmethod
 from datetime import datetime
-import queue
-import logging
 
 logger = logging.getLogger('root')
 

@@ -1,9 +1,11 @@
-from pubsub.publisher import Publisher
-from pubsub.redis_connection import RedisConnection
 import logging
 from concurrent.futures import ThreadPoolExecutor
+
 import redis
+
 from config import ConfigHelper
+from pubsub.publisher import Publisher
+from pubsub.redis_connection import RedisConnection
 
 logger = logging.getLogger('root')
 

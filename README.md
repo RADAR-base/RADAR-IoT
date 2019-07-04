@@ -12,29 +12,29 @@ TODO
 ### Configuration
 The template for configuration is located at [config.yaml.template](config.yaml.template). Copy this to the `config.yaml` and modify as required.
 
-Currently, there the configuration can be divided in to 3 main components. Each of the components has some sensible defaults but it is recommended to understand this section thoroughly.
+Currently, there the configuration can be divided in to 4 main components. Each of the components has some **sensible defaults** but it is recommended to understand this section thoroughly.
 
 1. **Sensors**: Represented by the key `sensors` in the config file consists of an array of sensor configurations.
 Each sensor is configured as follows - 
     ```yaml
      -  name: "your-sensor-name"
         # Name of your python module which contains the sensor class
-        module: "sensors.your_module" 
+        module: "your_package.your_module" 
         # Name of the class of the sensor in the module
         class: "YourSensorClass"
-        # topic to publish the data to in pub/sub paradigm
+        # topic/channel to publish the data to in pub/sub paradigm
         publishing_topic: "your-sensor-topic" 
         # polling frequency in milliseconds 
         poll_frequency_ms: 1000 
         # Flush size for flushing the records
         flush_size: 100
-        # Flush after seconds if flush size is not reached
+        # Flush after [value] seconds if flush size is not reached
         flush_after_s: 1000
     ```
     Currently, implementations for the following sensors are provided -
     - [Google Coral Environment Board Sensors](https://coral.withgoogle.com/products/environmental/): In the modules - [coral_enviro_humidity](sensors/coral_enviro_humidity.py), [coral_enviro_light](coral_enviro_light.py), [coral_enviro_temperature](coral_enviro_temperature.py)
     
-    By default , No Sensors are added to the Configuration. This is because this has no value of running without any sensors and also it is hardware dependent and thus we cannot have a default sensor config. If sensor config is not provided, the program will fail with an exception.
+    By **Default** , No Sensors are added to the Configuration. This is because this has no value of running without any sensors and also it is hardware dependent and thus we cannot have a default sensor config. If sensor config is not provided, the program will fail with an exception.
 
 2. **Converters**: Represented by the key `converter` in the config file. This is for Serialisation of the messages captured by the sensors and before publishing them. It comprises of the following fields - 
 
@@ -86,12 +86,28 @@ Each sensor is configured as follows -
     - The above mentioned values are the defaults. Only add these to the config file if need to update. 
     - The `expose_config_endpoint`, if set to `True`, exposes an http endpoint for getting the config of the system. Could be useful if other systems need to use this config.
     - `scheduler_max_threads` is the max workers for the [ThreadPoolExecutor](https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor) used by the scheduler for polling sensor data. Increasing this may be beneficial if using a large number of sensors.
-
+    - The `root_logger_level` define the log level for the `root` logger which is used across the whole application.
 #### Other means of Configuration
-Other than the defaults and the `config.yaml` file, The framework also supports configuration using the OS Environment Variables.
+Other than the defaults and the `config.yaml` file, The framework also supports configuration using the OS Environment Variables. For using these, the keys used in the above config files needs to be prefixed with `radar_iot_`. This is done to ensure the names never conflict with other environment variables.
+For example, to set the `root_logger_level` value using environment variables, use - 
+```bash
+radar_iot_root_logger_level=INFO
+```
+
+##### Precedence of the Configurations
+With so many config options, it's important to clarify the order in which the configuration is read.
+It is as follows-
+- First the Default Config is loaded.
+- This is overwritten with matching keys from the OS environment variables.
+- This is further overwritten with values from the `config.yaml` file.
+
+So in descending order of precedence,
+```bash
+config.yaml > OS environment vars > default
+```
 
 #### Validation of Configuration
-The `config.yaml` file is validated against the [json-schema](https://json-schema.org/) spec at [configspec](configspec.json`)
+The Configuration is validated against the [json-schema](https://json-schema.org/) spec at [configspec](configspec.json`)
 
 
 ### Installation
@@ -105,23 +121,57 @@ TODO
 ## Extending
 
 The framework is decoupled and it is easy to extend different components.
-In particular, there are 3 major components in the framework - 
+In particular, there are 4 major components in the framework that can be easily extended - 
 
 - The sensor module
-- The pub/sub module
+- The publisher module
 - The Message Converter (Serialisation) module
 - The Data uploader or data consumer module.
+
+### Requirements
+
+- Basic knowledge of IoT devices like Raspberry Pi and their hardware and interfacing like sensors.
+- Basic knowledge of Python and docker.
+- Optional but a basic knowledge about the RADAR-base platform and its components and client apps.
+
+Depending on which part of the framework is being extended, the requirements will vary.
+
 
 ### Extending the sensor module
 - Sensor module can be extended by adding new sensors by extending the `sensor.Sensor` abstract base class (ABC) and implementing the appropriate abstract functions.
 - After creating the subclass, you just need to add it to the `config.yaml` file as specified in the [Configuration](#configuration) section above.
 
-For example,
+For example, following is implementation of a test sensor. You just need to specify the `get_data()` method and the rest will be taken care by the framework.
 
+```python
+import logging
+
+from sensors.sensor import Sensor
+
+logger = logging.getLogger('root')
+
+
+class YourTestSensor(Sensor):
+    def __init__(self, name, topic, poll_freq_ms, flush_size, flush_after_s):
+        super().__init__(name, topic, poll_freq_ms, flush_size, flush_after_s)
+
+    def get_data(self):
+        logger.debug('test data')
+        # Your logic for getting data from the sensor
+        return 35.7
+```
+Remember to pass all the required constructor values to the super class.
+Also notice the use of the root logger which was discussed earlier in the [configuration](#configuration) section.
+
+Additionally, you can also extend other methods of sensor used for polling, flushing, etc. These can be found in the super class [Sensor](sensors/sensor.py)
 
 For already available sensor implementations, take a look at various sensors in the [sensors](/sensors) package.
 
-### Extending the Pub/Sub module
+### Extending the Publisher module
+TODO
+-
+
+### Extending the Message Converter module
 TODO
 -
 

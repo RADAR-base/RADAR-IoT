@@ -2,9 +2,8 @@ from abc import ABC, abstractmethod
 
 
 class Connection(ABC):
-
-    host='localhost'
-    port='8080'
+    host = 'localhost'
+    port = '8080'
 
     def __init__(self, host, port, user, password):
         self.host = host
@@ -28,4 +27,3 @@ class Connection(ABC):
     @abstractmethod
     def get_connection_attributes(self):
         pass
-

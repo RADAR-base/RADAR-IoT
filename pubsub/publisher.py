@@ -1,7 +1,8 @@
-from abc import ABC, abstractmethod
-from pubsub.connection import Connection
 import logging
+from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
+
+from pubsub.connection import Connection
 
 logger = logging.getLogger('root')
 

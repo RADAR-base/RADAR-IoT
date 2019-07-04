@@ -1,5 +1,6 @@
-from abc import ABC, abstractmethod
 import logging
+from abc import ABC, abstractmethod
+
 from commons.schema import SchemaRetriever
 
 logger = logging.getLogger('root')

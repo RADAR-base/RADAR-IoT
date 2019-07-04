@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod
 import logging
+from abc import ABC, abstractmethod
 
 logger = logging.getLogger('root')
 
@@ -10,7 +10,6 @@ class SchemaRetriever(ABC):
 
 
 class AvroSchemaRetriever(SchemaRetriever):
-
     # TODO use ExpiringDict
     cached_schemas = dict()
 
