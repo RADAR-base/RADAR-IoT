@@ -17,10 +17,8 @@ class Publisher(ABC):
             raise ConnectionError(f'Connection failed: {connection.__class__.__name__}')
 
     @abstractmethod
-    def _publish(self, msgs: list, topic: str, validate_only=False,
-                 schema_name=None) -> None:
+    def _publish(self, msgs: list, topic: str, schema_name=None) -> None:
         pass
 
-    def publish(self, msgs: list, topic: str, validate_only=False,
-                schema_name=None):
-        self.publisher_thread_pool.submit(self._publish, msgs, topic, validate_only, schema_name)
+    def publish(self, msgs: list, topic: str, schema_name=None):
+        self.publisher_thread_pool.submit(self._publish, msgs, topic, schema_name)

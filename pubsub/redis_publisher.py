@@ -17,15 +17,15 @@ class RedisPublisher(Publisher):
         super().__init__(connection, publisher_thread_pool)
 
     # if validate_only is True, then only validation is performed and no conversion.
-    def _publish(self, msgs: list, topic: str, validate_only=False, schema_name=None) -> None:
-        if self.converter is not None and schema_name is not None and validate_only:
+    def _publish(self, msgs: list, topic: str, schema_name=None) -> None:
+        if self.converter is not None and self.converter.validate_only:
             # do validation
             if self.converter.validate_all(msgs, schema_name):
                 logger.debug(f' Validated {len(msgs)} messages using converter {self.converter.__class__.__name__}')
             else:
-                logger.warning(f'Validation failed for messages {msgs}. Please look for any errors.')
+                logger.warning(f'Validation failed for messages {msgs}. Please look for any errors. Not publishing...')
                 return
-        elif self.converter is not None and schema_name is not None:
+        elif self.converter is not None:
             msgs = self.converter.convert(msgs, schema_name)
             logger.debug(f'Converted message is {msgs} using {self.converter.__class__.__name__}')
 

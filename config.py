@@ -8,6 +8,7 @@ from sensors.sensor import Sensor
 from typing import List
 from concurrent.futures import ThreadPoolExecutor
 from commons.schema import SchemaNamingStrategy, SensorBasedSchemaNamingStrategy
+from os import environ
 
 MODULE_KEY = 'module'
 CLASS_KEY = 'class'
@@ -15,6 +16,42 @@ TOPIC_KEY = 'publishing_topic'
 POLL_FREQUENCY_KEY = 'poll_frequency_ms'
 FLUSH_SIZE_KEY = 'flush_size'
 FLUSH_AFTER_S_KEY = 'flush_after_s'
+PUBLISHER_KEY = 'publisher'
+ROOT_LOGGER_LEVEL_KEY = 'root_logger_level'
+CONVERTER_KEY = 'converter'
+SCHEDULER_MAX_THREADS_KEY = 'scheduler_max_threads'
+EXPOSE_TOPIC_ENDPOINT_KEY = 'expose_topic_endpoint'
+
+# Default values
+CONNECTION = {
+    'module': 'pubsub.redis_connection',
+    'class': 'RedisConnection',
+    'host': 'localhost',
+    'port': '6379',
+    'user': '',
+    'password': '',
+}
+
+PUBLISHER = {
+    'module': 'pubsub.redis_publisher',
+    'class': 'RedisPublisher',
+    'connection': CONNECTION,
+    'publisher_max_threads': 5
+}
+
+LOGGER_LEVEL = 'DEBUG'
+EXPOSE_TOPIC_ENDPOINT = True
+SCHEDULER_MAX_THREADS = 10
+
+CONVERTER = None
+
+DEFAULT_CONF = {
+    PUBLISHER_KEY: PUBLISHER,
+    ROOT_LOGGER_LEVEL_KEY: LOGGER_LEVEL,
+    CONVERTER_KEY: CONVERTER,
+    SCHEDULER_MAX_THREADS_KEY: SCHEDULER_MAX_THREADS,
+    EXPOSE_TOPIC_ENDPOINT_KEY: EXPOSE_TOPIC_ENDPOINT
+}
 
 
 class Configuration:
@@ -22,9 +59,12 @@ class Configuration:
     SPEC_FILENAME = 'configspec.json'
     logger = logging.getLogger(__name__)
 
-    def __init__(self):
-        config_spec = anyconfig.load(self.SPEC_FILENAME)
-        self.config = anyconfig.load(self.FILENAME)
+    def __init__(self, file_path=FILENAME, spec_file_path=SPEC_FILENAME):
+        self.config = DEFAULT_CONF
+        conf_ = anyconfig.load(file_path)
+        config_spec = anyconfig.load(spec_file_path)
+        anyconfig.merge(self.config, environ.copy())
+        anyconfig.merge(self.config, conf_)
         (rc, err) = anyconfig.validate(self.config, config_spec)
         if rc is False or err != '':
             raise AttributeError('Invalid configuration', err)
@@ -41,10 +81,7 @@ class Configuration:
         return self.config['expose_topic_endpoint']
 
     def get_root_logger_level(self):
-        if 'root_logger_level' in self.config:
-            return self.config['root_logger_level']
-        else:
-            return 'INFO'
+        return self.config['root_logger_level']
 
     def get_publisher(self):
         return self.config['publisher']
@@ -53,10 +90,7 @@ class Configuration:
         return self.config['scheduler_max_threads']
 
     def get_converter(self):
-        if 'converter' in self.config and 'schema_retriever' in self.config['converter']:
-            return self.config['converter']
-        else:
-            return None
+        return self.config['converter']
 
 
 config = Configuration()
@@ -71,8 +105,10 @@ class ConfigHelper:
             schema_retriever = DynamicImporter(converter_conf['schema_retriever'][MODULE_KEY],
                                                converter_conf['schema_retriever'][CLASS_KEY],
                                                kwargs=converter_conf['schema_retriever']['args']).instance
+
             return DynamicImporter(converter_conf[MODULE_KEY],
-                                   converter_conf[CLASS_KEY], schema_retriever).instance
+                                   converter_conf[CLASS_KEY], schema_retriever,
+                                   converter_conf['validate_only']).instance
         else:
             return None
 

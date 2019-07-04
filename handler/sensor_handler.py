@@ -1,12 +1,14 @@
-from sensors.sensor import Sensor
 import logging
-from config import Configuration, ConfigHelper
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.executors.pool import ProcessPoolExecutor
-import apscheduler.events as aps_events
 from concurrent.futures import ThreadPoolExecutor
+
+import apscheduler.events as aps_events
+from apscheduler.executors.pool import ProcessPoolExecutor
+from apscheduler.schedulers.background import BackgroundScheduler
+
 from commons.message_converter import MessageConverter
+from config import Configuration, ConfigHelper
 from pubsub.publisher import Publisher
+from sensors.sensor import Sensor
 
 logger = logging.getLogger('root')
 
@@ -40,8 +42,9 @@ class SensorHandler:
         for x in self.sensors:
             self.scheduler.add_job(x.poll, 'interval', seconds=x.poll_freq_ms / 1000, name=f'{x.topic}-poller')
         try:
+            import time
             while True:
-                pass
+                time.sleep(1)
         except KeyboardInterrupt:
             logging.warning(f'The process {self.__class__.__name__} was interrupted. Gracefully shutting down...')
         finally:

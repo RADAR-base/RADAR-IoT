@@ -27,7 +27,14 @@
           "flush_after_s": {
             "type": "integer"
           }
-        }
+        },
+        "required": [
+          "name",
+          "module",
+          "class",
+          "publishing_topic",
+          "poll_frequency_ms"
+        ]
       }
     }
   },
@@ -63,31 +70,49 @@
           }
         }
       },
-      "converter": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "schema_retriever": {
-            "type": "object",
-            "properties": {
-              "module": {
-                "type": "string"
-              },
-              "class": {
-                "type": "string"
-              },
-              "args": {
-                "type": "object"
-              }
+      "publisher_max_threads": {
+        "type": "integer"
+      }
+    },
+    "converter": {
+      "type": [
+        "object",
+        "None"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "module": {
+          "type": "string"
+        },
+        "class": {
+          "type": "string"
+        },
+        "validate_only": {
+          "type": "boolean"
+        },
+        "schema_retriever": {
+          "type": "object",
+          "properties": {
+            "module": {
+              "type": "string"
+            },
+            "class": {
+              "type": "string"
+            },
+            "args": {
+              "type": "object"
             }
           }
         }
       },
-      "publisher_max_threads": {
-        "type": "integer"
-      }
+      "required": [
+        "schema_retriever",
+        "module",
+        "class",
+        "name"
+      ]
     },
     "expose_topic_endpoint": {
       "type": "boolean"
@@ -98,5 +123,8 @@
     "scheduler_max_threads": {
       "type": "integer"
     }
-  }
+  },
+  "required": [
+    "sensors"
+  ]
 }

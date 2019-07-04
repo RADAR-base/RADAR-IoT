@@ -49,7 +49,7 @@ class Sensor(ABC):
 
     # Private as it's working is internal
     def _publish(self, msgs) -> None:
-        self.publisher.publish(msgs, self.topic, validate_only=True, schema_name=self.schema_name)
+        self.publisher.publish(msgs, self.topic, self.schema_name)
 
     @abstractmethod
     def get_data(self):

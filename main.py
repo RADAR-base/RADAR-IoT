@@ -1,5 +1,5 @@
 from config import ConfigHelper
-from sensors.sensor_handler import SensorHandler
+from handler.sensor_handler import SensorHandler
 import commons.log as log
 
 
