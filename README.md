@@ -1,18 +1,105 @@
 # RADAR-base IoT framework
 
 
-This is supposed to be deployed on IoT devices (like raspberry pi ) and allows for capturing sensor data and sending it to the RADAR-base platform backend.
-The framework is highly decoupled and extensible. Here is it's architecture - 
+The lightweight, flexible, configurable and highly extensible framework for IoT devices (like raspberry pi ) that allows for capturing sensor data (and potentially other devices) and consuming it in different ways including sending it to the [RADAR-base platform](https://github.com/RADAR-base/RADAR-Docker) backend.
+The framework is highly decoupled and extensible. There are 4 major components in the framework - 
 
-TODO
--
+* Sensors
+* Converters
+* Publishers
+* Data Consumers
+
+The only external dependency is a pub/sub broker or messaging queue that can be easily run using docker images either on the IoT device or elsewhere(like the cloud).
+
+Here is it's architecture. The data flow is from left to right. To know more about each component please take a look at the [Configuration section](#configuration)
+
+```
+                                                                                                                  .───────────.
+┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐                        (             )
+                                                                                                                 │`───────────'│
+│                                    Device Handlers                                    │                         Configuration│
+                                                                                                                 │             │
+│                                                                                       │                        │.───────────.│
+ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─                         (             )
+                                            │                                                                     `───────────'
+                         ┌──────────────────┴──────────────────────────┐
+                         ▼                                             ▼
+┌────────────────────────────────────────────────┐   ┌──────────────────────────────────┐  ┌──────────────────────────────────┐  ┌────────────────────────────────────────────┐  ┌─────┐   ┌──────────────────────────────────────────────────────────────────────┐
+│                                                │   │                                  │  │                                  │  │                                            │  │     │   │                                                                      │
+│                 Sensor Handler                 │   │        Other Handlers...         │  │            Converter             │  │                 Publisher                  │  │     │   │                            Data Consumer                             │
+│                                                │   │                                  │  │                                  │  │                                            │  │     │   │                                                                      │
+└────────────────────────────────────────────────┘   └──────────────────────────────────┘  └──────────────────────────────────┘  └────────────────────────────────────────────┘  │     │   └──────────────────────────────────────────────────────────────────────┘
+╔════════════════════════════════════════════════╗   ╔══════════════════════════════════╗  ┌──────────────────────────────────┐  ┌────────────────────────────────────────────┐  │     │    ╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳
+║                                                ║   ║                                  ║  │                                  │  │                                            │  │     │   ╳ ┌──────────────────────────────────────────────────────────────────┐ ╳
+║                                                ║   ║                                  ║  │ ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │  │ ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │  │     │   ╳ │  Essentially the data consumer can be any application or system  │ ╳
+║                                                ║   ║                                  ║  │                                │ │  │                                          │ │  │     │   ╳ │that can subscribe to topics/channels on the pub/sub system. This │ ╳
+║                                                ║   ║                                  ║  │ │      Message Converter         │  │ │                                          │  │     │   ╳ │  makes it language agnostic and helps connect external systems.  │ ╳
+║ ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐  ║   ║    ┌───────────────────────┐     ║  │     Abstract Base class for    │ │  │                 Publisher                │ │  │     │   ╳ └──────────────────────────────────────────────────────────────────┘ ╳
+║                    Sensor                      ║   ║    │                       │     ║  │ │ serialisation and validation   │  │ │   Abstract Base class for publishing     │  │     │   ╳ ┌──────────────────────────────────────────────────────────────────┐ ╳
+║ │Abstract Base class. Has implementation for│  ║   ║    │                       │     ║  │             of data.           │ │  │  records to the pub/sub broker or system │ │  │     │   ╳ │    Here we provide a general model which should be used when     │ ╳
+║   polling and flushing the data. The actual    ║   ║    │                       │     ║  │ │                                │  │ │                                          │  │     │   ╳ │     developing such data consumer to provide flexibility and     │ ╳
+║ │    data is provided by the subclasses     │  ║   ║    │                       │     ║  │  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘ │  │                                          │ │  │     │   ╳ │    extensibility in line with the other parts of the system.     │ ╳
+║                                                ║   ║    │                       │     ║  │                 │                │  │ └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │  │     │   ╳ └──────────────────────────────────────────────────────────────────┘ ╳
+║ └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘  ║   ║    │   Handler Specific    │     ║  │        extends──┴──extends┐      │  │                      │                     │  │  P  │    ╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳╳
+║                       │                        ║   ║    │    Implementations    │     ║  │         │                 │      │  │       ┌extends─────┬─┴──────extends─┐      │  │  u  │   ┌──────────────────────────────────────────────────────────────────────┐
+║       ┌────extends───┬┴─────extends────┐       ║   ║    │                       │     ║  │         ▼                 ▼      │  │       │            │                │      │  │  b  │   │ ┌──────────────────────────────────────────────────────────────────┐ │
+║       │              │                 │       ║   ║    │                       │     ║  │┌────────────────┐   ┌───────────┐│  │       ▼            ▼                ▼      │  │  l  │   │ │                           Data Handler                           │ │
+║       ▼              ▼                 ▼       ║   ║    │                       │     ║  ││                │   │           ││  │  ┌─────────┐  ┌─────────┐      ┌─────────┐ │  │  i  │   │ │                                                                  │ │
+║┌─────────────┐┌─────────────┐   ┌─────────────┐║   ║    │                       │     ║  ││                │   │   Other   ││  │  │         │  │         │      │         │ │  │  s  │   │ └──────────────────────────────────────────────────────────────────┘ │
+║│             ││             │   │             │║   ║    │                       │     ║  ││ AvroConverter  │   │ Converter ││  │  │  Redis  │  │  MQTT   │      │  Other  │ │  │  h  │   │   ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─      │
+║│  Sensor 1   ││  Sensor 2   │   │  Sensor N   │║   ║    └───────────────────────┘     ║  ││                │   │           ││  │  │Publisher│  │Publisher│      │Publisher│ │  │  e  │   │                                                                │     │
+║│fun get_data ││fun get_data │   │fun get_data │║   ║                                  ║  ││                │   │           ││  │  │         │  │         │..... │         │ │  │  r  │   │   │                                                                  │
+║│             ││             │   │             │║   ║                                  ║  │└────────────────┘   └───────────┘│  │  └─────────┘  └─────────┘      └─────────┘ │  │  /  │   │                           Data Consumer                        │     │
+║└─────────────┘└─────────────┘   └─────────────┘║   ║                                  ║  │         △                 △      │  │       △            △                △      │  │  S  │   │   │   Abstract base class for consuming the data. The actual    ◁─┐  │
+║                                                ║   ║                                  ║  │         │                 │      │  │       │            │                │      │  │  u  │   │       processing of the consumed data is done by subclasses    │  │  │
+║                                                ║   ║                                  ║  │         │                 │      │  │       │            │                │      │  │  b  │   │   │                                                               │  │
+║                                                ║   ║                                  ║  │         │                 │      │  │       │            │                │      │  │  s  │   │                                                                │  │  │
+║                                                ║   ║                                  ║  │         │                 │      │  │       │            │                │      │  │  c  │   │   └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─   │  │
+║                                                ║   ║                                  ║  │         │                 │      │  │       │            │                │      │  │  r  │   │                                  │                                │  │
+║                                                ║   ║                                  ║  │         │                 │      │  │       │            │                │      │  │  i  │   │          ┌──extends───────┬──────┴──extends────────┐              │  │
+║                                                ║   ║                                  ║  │         └───────┬─────────┘      │  │       │            │                │      │  │  b  │   │          ▼                ▼                        ▼              │  │
+║                                                ║   ║                                  ║  │                 │                │  │       │            │                │      │  │  e  │   │    ┌───────────┐  ┌──────────────┐         ┌──────────────┐       │  │
+║                                                ║   ║                                  ║  │                 │                │  │       │            │                │      │  │     │   │    │           │  │              │         │              │       │  │
+║                                                ║   ║                                  ║  │                 │                │  │       │            │                │      │  │  b  │   │    │Radar Data │  │Visualisation │         │  Mobile App  │       │  │
+║                                                ║   ║                                  ║  │                 │                │  │       │            │                │      │  │  r  │   │    │ Consumer  │  │Data Consumer │         │   Consumer   │       │  │
+║                                                ║   ║                                  ║  │                 │                │  │       │            │                │      │  │  o  │   │    │           │  │              │  ...... │              │       │  │
+║                                                ║   ║                                  ║  │                 │                │  │       │            │                │      │  │  k  │   │    └───────────┘  └──────────────┘         └──────────────┘       │  │
+║                                                ║   ║                                  ║  │                 │                │  │       △            △                △      │  │  e  │   │          ▣                ▣                        ▣              │  │
+║                                                ║   ║                                  ║  │                 △                │  │ ┌──────────┐ ┌──────────┐     ┌───────────┐│  │  r  │   │          └────────────────┴────┬───────────────────┘              │  │
+║                                                ║   ║                                  ║  │     ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─      │  │ │          │ │          │     │           ││  │     │   │                                │                                  │  │
+║                                                ║   ║                                  ║  │                            │     │  │ │  Redis   │ │   MQTT   │     │   Other   ││  │  o  │   │                                ◎                                  │  │
+║                                                ║   ║                                  ║  │     │                            │  │ │Connection│ │Connection│     │Connection ││  │  r  │   │         .─────────────────────────────────────────────.           │  │
+║                                                ║   ║                                  ║  │         Schema Retriever   │     │  │ │          │ │          │.....│           ││  │     │   │        (               External Services               )          │  │
+║                                                ║   ║                                  ║  │     │                            │  │ └──────────┘ └──────────┘     └───────────┘│  │  s  │   │         `─────────────────────────────────────────────'           │  │
+║                                                ║   ║                                  ║  │                            │     │  │       ▲            ▲                ▲      │  │  y  │   │                                                                   │  │
+║                                                ║   ║                                  ║  │     │                            │  │       │            │                │      │  │  s  │   │                                                                   │  │
+║                                                ║   ║                                  ║  │      ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘     │  │       └─extends────┴─┬────extends───┘      │  │  t  │   │                                                                   │  │
+║                                                ║   ║                                  ║  │                 │                │  │                      │                     │  │  e  │   │              ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─                │  │
+║                                                ║   ║                                  ║  │      ┌─extends──┴┬───extends┐    │  │                      │                     │  │  m  │   │                                                   │               │  │
+║                                                ║   ║                                  ║  │      ▼           ▼          ▼    │  │ ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │  │     │   │              │                                                    │  │
+║                                                ║   ║                                  ║  │ ┌────────┐  ┌────────┐ ┌────────┐│  │                                          │ │  │     │   │                            Subscriber             │               │  │
+║                                                ║   ║                                  ║  │ │        │  │        │ │        ││  │ │                                          │  │     │   │              │Abstract base class for subscribing  ▷──────────────┘  │
+║                                                ║   ║                                  ║  │ │        │  │        │ │        ││  │                 Connection               │ │  │     │   │                      to the pub/sub system        │                  │
+║                                                ║   ║                                  ║  │ │  File  │  │  URL   │ │ Schema ││  │ │ Represents a connection to the pub/sub   │  │     │   │              │                                                       │
+║                                                ║   ║                                  ║  │ │ System │  │        │ │Registry││  │                   system                 │ │  │     │   │                                                   │                  │
+║                                                ║   ║                                  ║  │ │        │  │        │ │        ││  │ │                                          │  │     │   │              └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─                   │
+║                                                ║   ║                                  ║  │ │        │  │        │ │        ││  │                                          │ │  │     │   │                                 │                                    │
+║                                                ║   ║                                  ║  │ └────────┘  └────────┘ └────────┘│  │ └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  │  │     │   │                ┌──extends───────┴──┬─────extends────┐                │
+║                                                ║   ║                                  ║  │                                  │  │                                            │  │     │   │                ▼                   ▼                ▼                │
+║                                                ║   ║                                  ║  │                                  │  │                                            │  │     │   │          ┌──────────┐        ┌──────────┐     ┌──────────┐           │
+║                                                ║   ║                                  ║  │                                  │  │                                            │  │     │   │          │  Redis   │        │   MQTT   │     │  Other   │           │
+║                                                ║   ║                                  ║  │                                  │  │                                            │  │     │   │          │Subscriber│        │Subscriber│     │Subscriber│           │
+║                                                ║   ║                                  ║  │                                  │  │                                            │  │     │   │          └──────────┘        └──────────┘     └──────────┘           │
+║                                                ║   ║                                  ║  │                                  │  │                                            │  │     │   │                                                                      │
+╚════════════════════════════════════════════════╝   ╚══════════════════════════════════╝  └──────────────────────────────────┘  └────────────────────────────────────────────┘  └─────┘   └──────────────────────────────────────────────────────────────────────┘
+```
 
 ## Usage
 
 ### Configuration
 The template for configuration is located at [config.yaml.template](config.yaml.template). Copy this to the `config.yaml` and modify as required.
 
-Currently, there the configuration can be divided in to 4 main components. Each of the components has some **sensible defaults** but it is recommended to understand this section thoroughly.
+Currently, the configuration can be divided in to 4 main components. Each of the components has some **sensible defaults** but it is recommended to understand this section thoroughly.
 
 1. **Sensors**: Represented by the key `sensors` in the config file consists of an array of sensor configurations.
 Each sensor is configured as follows - 
@@ -34,7 +121,7 @@ Each sensor is configured as follows -
     Currently, implementations for the following sensors are provided -
     - [Google Coral Environment Board Sensors](https://coral.withgoogle.com/products/environmental/): In the modules - [coral_enviro_humidity](sensors/coral_enviro_humidity.py), [coral_enviro_light](coral_enviro_light.py), [coral_enviro_temperature](coral_enviro_temperature.py)
     
-    By **Default** , No Sensors are added to the Configuration. This is because this has no value of running without any sensors and also it is hardware dependent and thus we cannot have a default sensor config. If sensor config is not provided, the program will fail with an exception.
+    By **Default** , No Sensors are added to the Configuration. This is because it is hardware dependent and thus we cannot have a default sensor config. If sensor config is not provided, the program will fail with an exception.
 
 2. **Converters**: Represented by the key `converter` in the config file. This is for Serialisation of the messages captured by the sensors and before publishing them. It comprises of the following fields - 
 
@@ -83,7 +170,7 @@ Each sensor is configured as follows -
     root_logger_level: INFO
     scheduler_max_threads: 10
     ```
-    - The above mentioned values are the defaults. Only add these to the config file if need to update. 
+    - The above mentioned values are the **defaults**. Only add these to the config file if need to update. 
     - The `expose_config_endpoint`, if set to `True`, exposes an http endpoint for getting the config of the system. Could be useful if other systems need to use this config.
     - `scheduler_max_threads` is the max workers for the [ThreadPoolExecutor](https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor) used by the scheduler for polling sensor data. Increasing this may be beneficial if using a large number of sensors.
     - The `root_logger_level` define the log level for the `root` logger which is used across the whole application.
@@ -107,7 +194,7 @@ config.yaml > OS environment vars > default
 ```
 
 #### Validation of Configuration
-The Configuration is validated against the [json-schema](https://json-schema.org/) spec at [configspec](configspec.json`)
+The Configuration is validated against the [json-schema](https://json-schema.org/) spec at [configspec](configspec.json)
 
 
 ### Installation
