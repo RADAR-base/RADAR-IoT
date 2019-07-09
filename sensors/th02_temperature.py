@@ -1,6 +1,7 @@
 import logging
 
-from .sensor import Sensor
+from sensors.sensor import Sensor
+from datetime import datetime
 
 logger = logging.getLogger('root')
 
@@ -11,4 +12,4 @@ class Th02TemperatureSensor(Sensor):
 
     def get_data(self):
         logger.debug('TH02 temp data')
-        return 40
+        return {'time': datetime.now().timestamp(), 'value': 40}

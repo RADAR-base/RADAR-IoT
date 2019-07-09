@@ -136,7 +136,7 @@ Each sensor is configured as follows -
             class: 'FileAvroSchemaRetriever'
             args:
               filepath: '/base/path/to/the/schemas'
-              extension: '.avro'
+              extension: '.avsc'
     ```
     
     - If `validate_only` is `True`, then no conversion of the message is performed. It is only validated against the schema.
@@ -147,6 +147,7 @@ Each sensor is configured as follows -
         * Currently, support for [Avro](https://avro.apache.org/) is provided out of the box with schema retrievers from Filesystem, URL or [Confluent Schema Registry](https://www.confluent.io/confluent-schema-registry/) (Which is a part of the RADAR-base platform).
         * Each schema retriever is has its own set of required arguments. These can be specified using the `args` key under `schema_retriever`. For example, the `FileAvroSchemaRetriever` needs a base path where all schemas are stored in the filesystem(`filepath`) and an extension of the files(`extension`) as shown in the above example
         * Right now, the name of the schema is taken from the sensor name as can be seen in class `SensorBasedSchemaNamingStrategy` in the [commons.schema](commons/schema.py) module.
+        * For more information take look at the [Schema Retriever section](#schema-retrievers)
 
 3. **Publisher**: This is for configuring the [pubsub](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) broker/messaging queue for sending the captured sensor data. This provides extensibility to the framework so that other services, devices, etc can also capture the data which are outside of this framework. Some examples include mobile applications (like [RADAR-base passive RMT](https://github.com/RADAR-base/radar-prmt-android)), language agnostic data consumers (like using your existing libraries in other language like java to consume the messages), etc. [MQTT](http://mqtt.org/) is a widely used pubsub protocol for IoT devices and frameworks. [Redis pubsub](https://redis.io/topics/pubsub) is another lightweight pub/sub system and [perform well](https://redis.io/topics/ARM) on ARM architectures(like Raspberry PI) too. Plus it provides [other features](https://redis.io/topics/introduction) which maybe useful in the future.
  Hence, there is an out of the box implementation for publishing the data to Redis Pub/Sub but can easily add MQTT(see the [Extending](#extending-the-pubsub-module) section below). It can configured as follows-
@@ -265,3 +266,41 @@ TODO
 ### Extending the Data Upload module
 TODO
 -
+
+
+## Additional Info
+
+### Schema Retrievers
+
+There are 3 types of schema retrievers provided which are located in the [schema](/commons/schema.py) module -
+
+* **FileAvroSchemaRetriever**: This will retrieve the schemas from the local filesystem. It can configured as follows-
+    ```yaml
+          schema_retriever:
+            module: 'commons.schema'
+            class: 'FileAvroSchemaRetriever'
+            args:
+              filepath: '/etc/schemas/avro/sensors'
+              extension: '.avsc'
+    ```
+    This will walk down the path in the `filepath` specified and load all the files with the `extension` provided.
+    The example Avro schemas are located in the [/etc/schemas/avro/sensors](/etc/schemas/avro/sensors)
+    
+* **GithubAvroSchemaRetriever**: This will retrieve the schemas from a Github Repository. It can configured as follows-
+    ```yaml
+          schema_retriever:
+            module: 'commons.schema'
+            class: 'GithubAvroSchemaRetriever'
+            args:
+              repo_owner: 'RADAR-base'
+              repo_name: 'RADAR-Schemas'
+              branch: 'sensors'
+              basepath: 'commons/iot/sensor'
+              extension: '.avsc'
+              git_user: 'username'
+              git_password: '*******'
+    ```
+    Like the file retriever, this will also walk down the `basepath` in the repository and retrieve schemas with the `extension` provided. 
+    If the repository is public there is no requirement to specify the `git_user` and `git_password` but it is still recommended as it increases the Github Api limits.
+    
+* **SchemaRegistrySchemaRetriever**: TODO

@@ -26,17 +26,17 @@ EXPOSE_TOPIC_ENDPOINT_KEY = 'expose_topic_endpoint'
 
 # Default values
 CONNECTION = {
-    'module': 'pubsub.redis_connection',
-    'class': 'RedisConnection',
+    MODULE_KEY: 'pubsub.redis_connection',
+    CLASS_KEY: 'RedisConnection',
     'host': 'localhost',
     'port': '6379',
     'user': '',
-    'password': '',
+    'password': ''
 }
 
 PUBLISHER = {
-    'module': 'pubsub.redis_publisher',
-    'class': 'RedisPublisher',
+    MODULE_KEY: 'pubsub.redis_publisher',
+    CLASS_KEY: 'RedisPublisher',
     'connection': CONNECTION,
     'publisher_max_threads': 5
 }
@@ -106,20 +106,26 @@ config = Configuration()
 
 
 class ConfigHelper:
+    converter = None
+    publisher = None
 
     @staticmethod
     def get_converter() -> [MessageConverter, None]:
-        converter_conf = config.get_converter()
-        if converter_conf is not None:
-            schema_retriever = DynamicImporter(converter_conf['schema_retriever'][MODULE_KEY],
-                                               converter_conf['schema_retriever'][CLASS_KEY],
-                                               kwargs=converter_conf['schema_retriever']['args']).instance
+        if ConfigHelper.converter is None:
+            converter_conf = config.get_converter()
+            if converter_conf is not None:
+                schema_retriever = DynamicImporter(converter_conf['schema_retriever'][MODULE_KEY],
+                                                   converter_conf['schema_retriever'][CLASS_KEY],
+                                                   kwargs=converter_conf['schema_retriever']['args']).instance
 
-            return DynamicImporter(converter_conf[MODULE_KEY],
-                                   converter_conf[CLASS_KEY], schema_retriever,
-                                   converter_conf['validate_only']).instance
+                ConfigHelper.converter = DynamicImporter(converter_conf[MODULE_KEY],
+                                                         converter_conf[CLASS_KEY], schema_retriever,
+                                                         converter_conf['validate_only']).instance
+                return ConfigHelper.converter
+            else:
+                return None
         else:
-            return None
+            return ConfigHelper.converter
 
     @staticmethod
     def get_connection() -> Connection:
@@ -132,9 +138,13 @@ class ConfigHelper:
 
     @staticmethod
     def get_publisher() -> Publisher:
-        publishing_thread_pool = ThreadPoolExecutor(max_workers=config.get_publisher()['publisher_max_threads'])
-        return DynamicImporter(config.get_publisher()[MODULE_KEY], config.get_publisher()[CLASS_KEY],
-                               ConfigHelper.get_connection(), publishing_thread_pool).instance
+        if ConfigHelper.publisher is None:
+            publishing_thread_pool = ThreadPoolExecutor(max_workers=config.get_publisher()['publisher_max_threads'])
+            ConfigHelper.publisher = DynamicImporter(config.get_publisher()[MODULE_KEY], config.get_publisher()[CLASS_KEY],
+                                        ConfigHelper.get_connection(), publishing_thread_pool).instance
+            return ConfigHelper.publisher
+        else:
+            return ConfigHelper.publisher
 
     @staticmethod
     def get_sensors() -> List[Sensor]:

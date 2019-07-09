@@ -49,7 +49,7 @@ converter:
     class: 'FileAvroSchemaRetriever'
     args:
       filepath: '/base/path/to/the/files'
-      extension: '.avro'
+      extension: '.avsc'
 
 expose_topic_endpoint: True
 root_logger_level: INFO

@@ -6,6 +6,7 @@ import redis
 from config import ConfigHelper
 from pubsub.publisher import Publisher
 from pubsub.redis_connection import RedisConnection
+import json
 
 logger = logging.getLogger('root')
 
@@ -20,23 +21,27 @@ class RedisPublisher(Publisher):
 
     # if validate_only is True, then only validation is performed and no conversion.
     def _publish(self, msgs: list, topic: str, schema_name=None) -> None:
-        if self.converter is not None and self.converter.validate_only:
-            # do validation
-            if self.converter.validate_all(msgs, schema_name):
-                logger.debug(f' Validated {len(msgs)} messages using converter {self.converter.__class__.__name__}')
+        if self.converter is not None:
+            if self.converter.validate_only:
+                # do validation
+                if self.converter.validate_all(msgs, schema_name):
+                    logger.debug(f' Validated {len(msgs)} messages for {schema_name} using converter {self.converter.__class__.__name__}')
+                    msgs_converted = json.dumps(msgs)
+                else:
+                    logger.warning(f'Validation failed for messages {msgs}. Please look for any errors. Not publishing...')
+                    return
             else:
-                logger.warning(f'Validation failed for messages {msgs}. Please look for any errors. Not publishing...')
-                return
-        elif self.converter is not None:
-            msgs = self.converter.convert(msgs, schema_name)
-            logger.debug(f'Converted message is {msgs} using {self.converter.__class__.__name__}')
+                msgs_converted = self.converter.convert(msgs, schema_name)
+                logger.debug(f'Converted message is {msgs} using {self.converter.__class__.__name__}')
 
-        for msg in msgs:
-            try:
-                # publish messages
-                self.redis_client.publish(topic, msg)
-            except redis.PubSubError as error:
-                logger.warning(f'Could not publish message {msg} due to {error}')
-                pass
+        try:
+            # publish messages
+            self.redis_client.publish(topic, msgs_converted)
+        except redis.PubSubError as error:
+            logger.warning(f'Could not publish message {msgs_converted} due to {error}')
+            pass
+        except redis.exceptions.DataError as error:
+            logger.warning(f'Could not publish message {msgs_converted} due to {error}. Please perform necessary conversions first.')
+            pass
 
         logger.info(f'Published {len(msgs)} messages using publisher {self.__class__.__name__}')
