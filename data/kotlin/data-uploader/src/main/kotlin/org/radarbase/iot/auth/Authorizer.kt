@@ -8,7 +8,9 @@ interface Authorizer {
 
     fun initialise()
 
-    fun getAccessToken()
+    fun getAccessToken(): String
+
+    fun getOAuthState(): OAuthState
 
     fun getAuthHeader(): Headers
 }

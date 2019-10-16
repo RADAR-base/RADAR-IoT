@@ -1,7 +1,7 @@
 package org.radarbase.iot.auth
 
 import okhttp3.Headers
-import org.radarbase.iot.util.ManagementPortalClient
+import org.radarbase.iot.util.managementportal.ManagementPortalClient
 
 class ManagementPortalAuthorizer(val managementPortalClient: ManagementPortalClient) : Authorizer {
     override fun login() {
@@ -24,13 +24,17 @@ class ManagementPortalAuthorizer(val managementPortalClient: ManagementPortalCli
         // Templates.
     }
 
-    override fun getAccessToken() {
+    override fun getAccessToken(): String {
         TODO(
             "get Access token from Storage. If not found or is expired then get a new one using " +
                     "the refresh token. If refresh token has also expired then throw unauthorised " +
                     "exception"
         ) //To change body of created functions use File | Settings | File
         // Templates.
+    }
+
+    override fun getOAuthState(): OAuthState {
+        TODO("Waiting for impl")
     }
 
     override fun getAuthHeader(): Headers {

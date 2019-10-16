@@ -46,12 +46,10 @@ class KafkaAvroDataSender(val baseUrl: String, val authorizer: Authorizer?) : Av
         }
     }
 
-    data class SchemaRetrieverConfig(val serverConfig: ServerConfig, val connectionTimeout: Long)
-
     companion object {
-        const val KAFKA_SENDER_AGE_MS_DEFAULT = 60_000
-        const val KAFKA_SENDER_MAX_BATCH_SIZE = 1000
-        const val SCHEMA_RETRIEVER_CONNECTION_TIMEOUT = 30L
+        private const val KAFKA_SENDER_AGE_MS_DEFAULT = 60_000
+        private const val KAFKA_SENDER_MAX_BATCH_SIZE = 1000
+        private const val SCHEMA_RETRIEVER_CONNECTION_TIMEOUT = 30L
 
         val kafkaSenderFactory = SingletonHolder<BatchedKafkaSender, RestSender> {
             BatchedKafkaSender(it, KAFKA_SENDER_AGE_MS_DEFAULT, KAFKA_SENDER_MAX_BATCH_SIZE)
