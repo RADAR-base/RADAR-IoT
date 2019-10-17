@@ -1,6 +1,6 @@
-package auth
+package org.radarbase.iot.commons.auth
 
-import managementportal.ManagementPortalClient
+import org.radarbase.iot.commons.managementportal.ManagementPortalClient
 import okhttp3.Headers
 
 class ManagementPortalAuthorizer(val managementPortalClient: ManagementPortalClient) :

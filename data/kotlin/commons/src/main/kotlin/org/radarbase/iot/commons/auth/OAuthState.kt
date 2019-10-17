@@ -1,4 +1,4 @@
-package auth
+package org.radarbase.iot.commons.auth
 
 import okhttp3.Headers
 import java.time.Instant

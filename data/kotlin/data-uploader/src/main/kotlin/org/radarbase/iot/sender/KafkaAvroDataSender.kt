@@ -1,6 +1,6 @@
 package org.radarbase.iot.sender
 
-import auth.Authorizer
+import org.radarbase.iot.commons.auth.Authorizer
 import okhttp3.Headers
 import org.radarbase.config.ServerConfig
 import org.radarbase.data.RecordData
@@ -9,7 +9,7 @@ import org.radarbase.producer.rest.RestClient
 import org.radarbase.producer.rest.RestSender
 import org.radarbase.producer.rest.SchemaRetriever
 import org.radarbase.topic.AvroTopic
-import util.SingletonHolder
+import org.radarbase.iot.commons.util.SingletonHolder
 
 class KafkaAvroDataSender(val baseUrl: String, val authorizer: Authorizer?) : AvroDataSender {
 

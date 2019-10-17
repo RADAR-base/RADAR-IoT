@@ -1,4 +1,4 @@
-package util
+package org.radarbase.iot.commons.util
 
 /**
  * Thread-safe implementation of the Singleton pattern. Can be used for lazy init.

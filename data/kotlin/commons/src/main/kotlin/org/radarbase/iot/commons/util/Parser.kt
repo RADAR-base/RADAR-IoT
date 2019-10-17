@@ -1,4 +1,4 @@
-package util
+package org.radarbase.iot.commons.util
 
 import java.io.IOException
 

@@ -1,10 +1,10 @@
-package managementportal.parsers
+package org.radarbase.iot.commons.managementportal.parsers
 
-import auth.OAuthState
+import org.radarbase.iot.commons.auth.OAuthState
 import okhttp3.Headers
 import org.json.JSONException
 import org.json.JSONObject
-import util.Parser
+import org.radarbase.iot.commons.util.Parser
 import java.io.IOException
 import java.time.Duration
 import java.time.Instant

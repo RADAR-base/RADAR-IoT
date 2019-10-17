@@ -1,13 +1,13 @@
-package managementportal.parsers
+package org.radarbase.iot.commons.managementportal.parsers
 
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import managementportal.SourceMetadata
-import managementportal.SourceType
-import managementportal.Subject
+import org.radarbase.iot.commons.managementportal.SourceMetadata
+import org.radarbase.iot.commons.managementportal.SourceType
+import org.radarbase.iot.commons.managementportal.Subject
 import org.slf4j.LoggerFactory
-import util.Parser
+import org.radarbase.iot.commons.util.Parser
 import java.io.IOException
 
 class SubjectParser : Parser<String, Subject> {

@@ -1,7 +1,7 @@
-package managementportal
+package org.radarbase.iot.commons.managementportal
 
-import auth.MetaToken
-import auth.OAuthState
+import org.radarbase.iot.commons.auth.MetaToken
+import org.radarbase.iot.commons.auth.OAuthState
 import okhttp3.Credentials
 import okhttp3.FormBody
 import okhttp3.Headers
@@ -11,11 +11,11 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONException
 import org.json.JSONObject
 import org.radarbase.config.ServerConfig
-import managementportal.parsers.SubjectParser
+import org.radarbase.iot.commons.managementportal.parsers.SubjectParser
 import org.radarbase.producer.AuthenticationException
 import org.radarbase.producer.rest.RestClient
 import org.slf4j.LoggerFactory
-import util.Parser
+import org.radarbase.iot.commons.util.Parser
 import java.io.IOException
 import java.lang.IllegalArgumentException
 import java.net.MalformedURLException
@@ -51,7 +51,7 @@ class ManagementPortalClient(managementPortal: ServerConfig, clientId: String, c
      * Get subject information from the Management portal. This includes project ID, available
      * source types and assigned sources.
      * @param userId userId to get the subject info from
-     * @param okHttpHeaders headers to include when making the request. Should contain auth info.
+     * @param okHttpHeaders headers to include when making the request. Should contain org.radarbase.iot.commons.auth info.
      * @throws IOException if the management portal could not be reached or it gave an erroneous
      * response.
      */
@@ -203,8 +203,8 @@ class ManagementPortalClient(managementPortal: ServerConfig, clientId: String, c
     companion object {
         private val logger = LoggerFactory.getLogger(ManagementPortalClient::class.java)
 
-        const val SOURCES_PROPERTY = "org.radarcns.android.auth.portal.ManagementPortalClient.sources"
-        const val MP_REFRESH_TOKEN_PROPERTY = "org.radarcns.android.auth.portal.ManagementPortalClient.refreshToken"
+        const val SOURCES_PROPERTY = "org.radarcns.android.org.radarbase.iot.commons.auth.portal.ManagementPortalClient.sources"
+        const val MP_REFRESH_TOKEN_PROPERTY = "org.radarcns.android.org.radarbase.iot.commons.auth.portal.ManagementPortalClient.refreshToken"
         private const val APPLICATION_JSON = "application/json"
         private const val APPLICATION_JSON_UTF8 = "$APPLICATION_JSON; charset=utf-8"
         private val APPLICATION_JSON_TYPE = APPLICATION_JSON_UTF8.toMediaType()
