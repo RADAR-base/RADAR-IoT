@@ -1,9 +1,9 @@
-package org.radarbase.iot.util.managementportal.parsers
+package managementportal.parsers
 
+import auth.MetaToken
 import org.json.JSONException
 import org.json.JSONObject
-import org.radarbase.iot.auth.MetaToken
-import org.radarbase.iot.util.Parser
+import util.Parser
 import java.io.IOException
 
 class MetaTokenParser : Parser<String, MetaToken> {

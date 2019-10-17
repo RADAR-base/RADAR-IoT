@@ -1,5 +1,7 @@
-package org.radarbase.iot.util.managementportal
+package managementportal
 
+import auth.MetaToken
+import auth.OAuthState
 import okhttp3.Credentials
 import okhttp3.FormBody
 import okhttp3.Headers
@@ -9,13 +11,11 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONException
 import org.json.JSONObject
 import org.radarbase.config.ServerConfig
-import org.radarbase.iot.auth.MetaToken
-import org.radarbase.iot.auth.OAuthState
-import org.radarbase.iot.util.Parser
-import org.radarbase.iot.util.managementportal.parsers.SubjectParser
+import managementportal.parsers.SubjectParser
 import org.radarbase.producer.AuthenticationException
 import org.radarbase.producer.rest.RestClient
 import org.slf4j.LoggerFactory
+import util.Parser
 import java.io.IOException
 import java.lang.IllegalArgumentException
 import java.net.MalformedURLException
@@ -50,7 +50,8 @@ class ManagementPortalClient(managementPortal: ServerConfig, clientId: String, c
     /**
      * Get subject information from the Management portal. This includes project ID, available
      * source types and assigned sources.
-     * @param state current authentication state
+     * @param userId userId to get the subject info from
+     * @param okHttpHeaders headers to include when making the request. Should contain auth info.
      * @throws IOException if the management portal could not be reached or it gave an erroneous
      * response.
      */

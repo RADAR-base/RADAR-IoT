@@ -1,8 +1,8 @@
 package org.radarbase.iot.pubsub.connection
 
-import org.radarbase.iot.util.SingletonHolder
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
+import util.SingletonHolder
 
 class RedisConnection(
     val redisConnectionProperties: RedisConnectionProperties

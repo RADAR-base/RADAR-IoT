@@ -1,13 +1,13 @@
-package org.radarbase.iot.util.managementportal.parsers
+package managementportal.parsers
 
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import org.radarbase.iot.util.Parser
-import org.radarbase.iot.util.managementportal.SourceMetadata
-import org.radarbase.iot.util.managementportal.SourceType
-import org.radarbase.iot.util.managementportal.Subject
+import managementportal.SourceMetadata
+import managementportal.SourceType
+import managementportal.Subject
 import org.slf4j.LoggerFactory
+import util.Parser
 import java.io.IOException
 
 class SubjectParser : Parser<String, Subject> {
@@ -23,7 +23,7 @@ class SubjectParser : Parser<String, Subject> {
                 parseSourceTypes(
                     project
                 )
-            val attributes = HashMap<String, String>();
+            val attributes = HashMap<String, String>()
 
             jsonObject.opt("attributes")?.let { attrObjects ->
                 if (attrObjects is JSONArray) {

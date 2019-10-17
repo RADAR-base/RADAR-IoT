@@ -1,0 +1,5 @@
+package util
+
+object SensorTopics {
+
+}

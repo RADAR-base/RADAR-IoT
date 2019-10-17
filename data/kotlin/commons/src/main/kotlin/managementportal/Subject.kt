@@ -1,4 +1,4 @@
-package org.radarbase.iot.util.managementportal
+package managementportal
 
 data class Subject(
     val subjectId: String,

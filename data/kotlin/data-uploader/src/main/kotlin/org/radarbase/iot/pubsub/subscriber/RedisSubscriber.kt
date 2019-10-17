@@ -1,6 +1,5 @@
 package org.radarbase.iot.pubsub.subscriber
 
-import org.radarbase.iot.handler.DataHandler
 import org.radarbase.iot.pubsub.connection.RedisConnection
 import redis.clients.jedis.JedisPubSub
 

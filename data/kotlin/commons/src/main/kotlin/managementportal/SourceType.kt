@@ -1,4 +1,4 @@
-package org.radarbase.iot.util.managementportal
+package managementportal
 
 
 import org.json.JSONException

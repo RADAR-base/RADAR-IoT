@@ -1,9 +1,10 @@
-package org.radarbase.iot.auth
+package auth
 
+import managementportal.ManagementPortalClient
 import okhttp3.Headers
-import org.radarbase.iot.util.managementportal.ManagementPortalClient
 
-class ManagementPortalAuthorizer(val managementPortalClient: ManagementPortalClient) : Authorizer {
+class ManagementPortalAuthorizer(val managementPortalClient: ManagementPortalClient) :
+    Authorizer {
     override fun login() {
         TODO(
             "Get access and refresh token from storage. If not present try getting it from the " +
