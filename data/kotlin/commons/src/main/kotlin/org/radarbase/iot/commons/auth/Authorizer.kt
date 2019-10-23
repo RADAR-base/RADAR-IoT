@@ -13,4 +13,6 @@ interface Authorizer {
     fun getOAuthState(): OAuthState
 
     fun getAuthHeader(): Headers
+
+    fun isLoggedIn(): Boolean
 }

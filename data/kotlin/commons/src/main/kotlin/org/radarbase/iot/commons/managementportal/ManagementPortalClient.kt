@@ -203,8 +203,6 @@ class ManagementPortalClient(managementPortal: ServerConfig, clientId: String, c
     companion object {
         private val logger = LoggerFactory.getLogger(ManagementPortalClient::class.java)
 
-        const val SOURCES_PROPERTY = "org.radarcns.android.org.radarbase.iot.commons.auth.portal.ManagementPortalClient.sources"
-        const val MP_REFRESH_TOKEN_PROPERTY = "org.radarcns.android.org.radarbase.iot.commons.auth.portal.ManagementPortalClient.refreshToken"
         private const val APPLICATION_JSON = "application/json"
         private const val APPLICATION_JSON_UTF8 = "$APPLICATION_JSON; charset=utf-8"
         private val APPLICATION_JSON_TYPE = APPLICATION_JSON_UTF8.toMediaType()

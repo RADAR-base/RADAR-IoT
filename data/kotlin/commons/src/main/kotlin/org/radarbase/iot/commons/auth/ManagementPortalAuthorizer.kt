@@ -1,46 +1,124 @@
 package org.radarbase.iot.commons.auth
 
-import org.radarbase.iot.commons.managementportal.ManagementPortalClient
 import okhttp3.Headers
+import org.radarbase.iot.commons.managementportal.ManagementPortalClient
+import org.radarbase.iot.commons.managementportal.parsers.AccessTokenParser
+import org.radarbase.iot.commons.managementportal.parsers.SubjectParser
+import org.slf4j.LoggerFactory
+import java.time.Instant
 
-class ManagementPortalAuthorizer(val managementPortalClient: ManagementPortalClient) :
+class ManagementPortalAuthorizer(
+    val userId: String,
+    val managementPortalClient: ManagementPortalClient,
+    val oAuthStateStore: OAuthStateStore,
+    val loginStrategy: LoginStrategy<*>,
+    private val sourceId: String,
+    private val sourceTypeModel: String = DEFAULT_SOURCE_TYPE_MODEL,
+    private val sourceTypeProducer: String = DEFAULT_SOURCE_TYPE_PRODUCER,
+    private val sourceTypeCatalogVersion: String = DEFAULT_SOURCE_TYPE_CATALOG_VERSION
+) :
     Authorizer {
+
+    private lateinit var oAuthState: OAuthState
+    private var isLoggedIn = false
+
+    @Synchronized
     override fun login() {
-        TODO(
-            "Get access and refresh token from storage. If not present try getting it from the " +
-                    "meta-token also specified as part of initial configuration"
-        ) //To
-        // change body of
-        // created functions use File |
-        // Settings | File
-        // Templates.
+        var oAuthState1 = oAuthStateStore.getOAuthState(null)
+
+        if (oAuthState1 == null) {
+            oAuthState = getRefreshToken()
+            oAuthStateStore.saveOAuthState(null, oAuthState)
+            isLoggedIn = true
+        } else {
+            if (oAuthState1.refreshToken.isEmpty()) {
+                logger.warn("The refresh token was not found. Trying to login again.")
+                oAuthState1 = getRefreshToken()
+                oAuthStateStore.saveOAuthState(null, oAuthState1)
+            }
+            oAuthState = oAuthState1.also { isLoggedIn = true }
+        }
     }
 
     override fun initialise() {
-        TODO(
-            "Check if required sources are present and try to register if not." +
-                    "Get Refresh Token and Access token and store them in storage"
-        ) //To change body
-        // of created functions use File | Settings | File
-        // Templates.
+        if (!isLoggedIn) {
+            login()
+        }
+
+        val subject = managementPortalClient.getSubject(userId, getAuthHeader(), SubjectParser())
+        check(subject.sourceTypes.any {
+            it.model == sourceTypeModel
+                    && it.producer == sourceTypeProducer
+                    && it.catalogVersion == sourceTypeCatalogVersion
+        }) {
+            // TODO: Register source if not found.
+            "The Source type is not registered for the participant. " +
+                    "Please register it manually first."
+        }
+
+        check(subject.sourcesMetadata.any { it.sourceId == sourceId }) {
+            "The provided Source Id $sourceId does not match with the sources associated with " +
+                    "the user $userId"
+        }
     }
 
     override fun getAccessToken(): String {
-        TODO(
-            "get Access token from Storage. If not found or is expired then get a new one using " +
-                    "the refresh token. If refresh token has also expired then throw unauthorised " +
-                    "exception"
-        ) //To change body of created functions use File | Settings | File
-        // Templates.
+        check(isLoggedIn) { "Please login first" }
+
+        return if (oAuthState.expiration.isAfter(Instant.now())) {
+            oAuthState.accessToken.ifEmpty {
+                throw IllegalStateException("Access token is empty. Please login first")
+            }
+        } else {
+            oAuthState =
+                managementPortalClient.refreshToken(oAuthState, AccessTokenParser(oAuthState))
+            oAuthStateStore.saveOAuthState(null, oAuthState)
+            return oAuthState.accessToken
+
+        }
     }
 
-    override fun getOAuthState(): OAuthState {
-        TODO("Waiting for impl")
-    }
+    override fun getOAuthState(): OAuthState = oAuthState
 
     override fun getAuthHeader(): Headers {
-        TODO("use getAccessToken() to create and return the Authorization Header") //To change body
-        // of created functions use File | Settings |
-        // File Templates.
+        check(isLoggedIn) { "Please login first" }
+        return oAuthState.httpHeaders
+            ?: Headers.Builder()
+                .set("Authorization", "Bearer ${getAccessToken()}")
+                .build()
+    }
+
+    override fun isLoggedIn() = isLoggedIn
+
+    private fun getRefreshToken(): OAuthState {
+        val refreshToken = loginStrategy.getRefreshToken()
+            ?: throw IllegalStateException(
+                "Cannot login using the authoriser provided." +
+                        "The refresh token was not available."
+            )
+
+        val oAuthStateTemp = OAuthState(
+            refreshToken = refreshToken,
+            accessToken = "",
+            httpHeaders = null,
+            expiration = Instant.now()
+        )
+
+        // Save the temp oauth state (contains refresh token)
+        oAuthStateStore.saveOAuthState(null, oAuthStateTemp)
+
+        // get access token and new refresh token
+        return managementPortalClient.refreshToken(
+            oAuthStateTemp,
+            AccessTokenParser(oAuthStateTemp)
+        )
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(this::class.java)
+
+        var DEFAULT_SOURCE_TYPE_MODEL = "RADAR-IoT"
+        var DEFAULT_SOURCE_TYPE_PRODUCER = "RADAR"
+        var DEFAULT_SOURCE_TYPE_CATALOG_VERSION = "1.0.0"
     }
 }
