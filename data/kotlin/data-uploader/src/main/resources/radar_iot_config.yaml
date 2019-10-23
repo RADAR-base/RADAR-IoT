@@ -1,0 +1,23 @@
+radarConfig:
+  projectId: "radar"
+  userId: "sub-1"
+  sourceId: "radar-iot-xyz"
+  baseUrl: "http://localhost:8081"
+  oAuthClientId: "radar_iot"
+  oAuthClientSecret: "secret"
+  metaToken: "dlsLwIw0E1cP"
+
+sensorConfigs:
+  - sensorName: "coral-enviro-humidity"
+    inputTopic: "coral-enviro-humidity"
+    outputTopic: "coral_enviro_humidity"
+    converterClass: "org.radarbase.iot.converter.coralenviro.CoralEnviroHumidityAvroConverter"
+  - sensorName: "coral-enviro-temperature"
+    inputTopic: "coral-enviro-temperature"
+    outputTopic: "coral_enviro_temperature"
+    converterClass: "org.radarbase.iot.converter.coralenviro.CoralEnviroTemperatureConverter"
+
+dataConsumerConfigs:
+  - consumerClass: "org.radarbase.iot.consumer.RestProxyDataConsumer"
+    maxCacheSize: "1000"
+    uploadIntervalSeconds: "10"
