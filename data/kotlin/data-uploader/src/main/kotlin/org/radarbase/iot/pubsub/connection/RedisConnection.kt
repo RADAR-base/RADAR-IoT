@@ -1,8 +1,9 @@
 package org.radarbase.iot.pubsub.connection
 
+import org.radarbase.iot.commons.util.SingletonHolder
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
-import org.radarbase.iot.commons.util.SingletonHolder
+import redis.clients.jedis.Protocol
 
 class RedisConnection(
     val redisConnectionProperties: RedisConnectionProperties
@@ -10,7 +11,8 @@ class RedisConnection(
 
     override fun getConnectionPool(): Any = jedisPoolFactory.getInstance(redisConnectionProperties)
 
-    override fun getConnection() = jedisPoolFactory.getInstance(redisConnectionProperties).resource
+    override fun getConnection() = jedisPoolFactory.getInstance(redisConnectionProperties)
+        .resource!!
 
     companion object {
         val jedisPoolFactory = SingletonHolder<JedisPool, RedisConnectionProperties> {
@@ -20,8 +22,8 @@ class RedisConnection(
 }
 
 data class RedisConnectionProperties(
-    val host: String,
-    val port: Int,
-    val timeOut: Int,
-    val password: String
+    val host: String = Protocol.DEFAULT_HOST,
+    val port: Int = Protocol.DEFAULT_PORT,
+    val timeOut: Int = Protocol.DEFAULT_TIMEOUT,
+    val password: String = ""
 )

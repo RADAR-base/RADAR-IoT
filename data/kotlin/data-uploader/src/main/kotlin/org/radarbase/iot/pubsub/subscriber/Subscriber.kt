@@ -1,6 +1,6 @@
 package org.radarbase.iot.pubsub.subscriber
 
-interface Subscriber {
+interface Subscriber<T> {
 
-    fun subscribe(channel: String, consumer: Any)
+    fun subscribe(channel: String, consumer: T)
 }

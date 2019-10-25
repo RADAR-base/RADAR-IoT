@@ -1,8 +1,17 @@
 package org.radarbase.iot.converter
 
-class AvroConverter<S, T> : Converter<S, T> {
+import org.radarbase.data.RecordData
+import org.radarbase.iot.config.Configuration.Companion.CONFIGURATION
+import org.radarbase.topic.AvroTopic
+import org.radarcns.kafka.ObservationKey
 
-    override fun convert(message: S): T {
-        TODO("")
+interface AvroConverter<K, V> : Converter<List<String>, RecordData<K, V>> {
+    fun getAvroTopic(): AvroTopic<K, V>
+
+    companion object {
+        val genericObservationKey = ObservationKey(
+            CONFIGURATION.radarConfig.projectId, CONFIGURATION
+                .radarConfig.userId, CONFIGURATION.radarConfig.sourceId
+        )
     }
 }

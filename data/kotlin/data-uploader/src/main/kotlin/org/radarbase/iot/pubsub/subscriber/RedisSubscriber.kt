@@ -3,14 +3,15 @@ package org.radarbase.iot.pubsub.subscriber
 import org.radarbase.iot.pubsub.connection.RedisConnection
 import redis.clients.jedis.JedisPubSub
 
-class RedisSubscriber(private val conn: RedisConnection, private val onMessage: (Any) -> Any) :
-        Subscriber {
+class RedisSubscriber(private val conn: RedisConnection) :
+    Subscriber<JedisPubSub> {
 
-    override fun subscribe(channel: String, consumer: Any) {
-        if (consumer !is JedisPubSub) {
-            throw IllegalArgumentException("""Data Consumer should extend
-                | JedisPubSub to work with redis""".trimMargin())
-        }
+    init {
+        // Test if the connection works. It will throw an error if it does not.
+        conn.getConnection().use {  }
+    }
+
+    override fun subscribe(channel: String, consumer: JedisPubSub) {
         conn.getConnection().use { it.subscribe(consumer, channel) }
     }
 }

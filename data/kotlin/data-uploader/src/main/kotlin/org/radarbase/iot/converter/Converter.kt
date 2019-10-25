@@ -1,5 +1,6 @@
 package org.radarbase.iot.converter
 
-interface Converter<S, T> {
-    fun convert(message: S): T
+interface Converter<in S, out T> {
+    fun convert(messages: S): T
+
 }
