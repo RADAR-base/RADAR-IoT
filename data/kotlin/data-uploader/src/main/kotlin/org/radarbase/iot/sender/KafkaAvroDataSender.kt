@@ -1,50 +1,65 @@
 package org.radarbase.iot.sender
 
-import org.radarbase.iot.commons.auth.Authorizer
 import okhttp3.Headers
+import org.apache.avro.SchemaValidationException
 import org.radarbase.config.ServerConfig
 import org.radarbase.data.RecordData
+import org.radarbase.iot.commons.auth.Authorizer
+import org.radarbase.iot.commons.util.SingletonHolder
 import org.radarbase.producer.BatchedKafkaSender
 import org.radarbase.producer.rest.RestClient
 import org.radarbase.producer.rest.RestSender
 import org.radarbase.producer.rest.SchemaRetriever
 import org.radarbase.topic.AvroTopic
-import org.radarbase.iot.commons.util.SingletonHolder
+import java.io.IOException
 
-class KafkaAvroDataSender(val baseUrl: String, val authorizer: Authorizer?) : AvroDataSender {
-
-    private val restSender: RestSender
+class KafkaAvroDataSender(
+    val baseUrl: String,
+    val authorizer: Authorizer?,
+    val kafkaUrl: String = "${baseUrl}/kafka",
+    val schemaUrl: String = "${baseUrl}/schema",
+    private val client: RestClient = RestClient.global().apply {
+        server(ServerConfig(kafkaUrl))
+        gzipCompression(true)
+    }.build(),
+    private val schemaRetriever: SchemaRetriever = schemaRetrieverFactory.getInstance(
+        ServerConfig(
+            schemaUrl
+        )
+    )
+) : AvroDataSender {
 
     init {
-        val kafkaUrl = "${baseUrl}/kafka"
-        val schemaUrl = "${baseUrl}/schema"
-
-        val client = RestClient.global().apply {
-            server(ServerConfig(kafkaUrl))
-            gzipCompression(true)
-        }.build()
-
-        val schemaRetriever = schemaRetrieverFactory.getInstance(ServerConfig(schemaUrl))
-
-        restSender = RestSender.Builder().apply {
-            httpClient(client)
-            schemaRetriever(schemaRetriever)
-            useBinaryContent(true)
-            headers(authorizer?.getAuthHeader() ?: Headers.Builder().build())
-        }.build()
+        if (authorizer != null && !authorizer.isLoggedIn()) {
+            authorizer.initialise()
+        }
     }
 
+    @Throws(IOException::class, SchemaValidationException::class)
     override fun <K, V> send(key: K, value: V, topic: AvroTopic<K, V>) {
-        kafkaSenderFactory.getInstance(restSender).sender(topic).use { topicSender ->
+        kafkaSenderFactory.getInstance(getRestSender()).sender(topic).use { topicSender ->
             topicSender.send(key, value)
         }
     }
 
-    override fun <K, V> sendAll(records: RecordData<K, V>, topic: AvroTopic<K, V>) {
-        kafkaSenderFactory.getInstance(restSender).sender(topic).use { topicSender ->
+    @Throws(IOException::class, SchemaValidationException::class)
+    override fun <K, V> sendAll(records: RecordData<K, V>) {
+        kafkaSenderFactory.getInstance(getRestSender()).sender(records.topic).use { topicSender ->
             topicSender.send(records)
         }
     }
+
+    override fun isConnected(): Boolean = kafkaSenderFactory
+        .getInstance(getRestSender()).use {
+            it.isConnected
+        }
+
+    private fun getRestSender() = RestSender.Builder().apply {
+        httpClient(client)
+        schemaRetriever(schemaRetriever)
+        useBinaryContent(true)
+        headers(authorizer?.getAuthHeader() ?: Headers.Builder().build())
+    }.build()
 
     companion object {
         private const val KAFKA_SENDER_AGE_MS_DEFAULT = 60_000

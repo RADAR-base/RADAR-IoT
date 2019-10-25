@@ -9,19 +9,19 @@ import org.radarbase.iot.commons.util.SingletonHolder
 import org.slf4j.LoggerFactory
 import java.io.File
 
+/**
+ * Persistent Store uses Nitrite Database for storing OAuth State. See [OAuthStateStore]
+ * The [key] in function parameters should be a number as it is casted to Long
+ */
 class PersistentOAuthStateStore(val nitriteProperties: NitriteProperties) : OAuthStateStore {
 
     override fun getOAuthState(key: String?): OAuthState? {
-        return try {
-            dbFactory
-                .getInstance(nitriteProperties)
-                .getRepository<OAuthStateDoc>().use {
-                    it.find(eq("id", getId(key))).firstOrDefault()
-                }
-                .oAuthState
-        } catch (exc: NullPointerException) {
-            null
-        }
+        return dbFactory
+            .getInstance(nitriteProperties)
+            .getRepository<OAuthStateDoc>().use {
+                it.find(eq("id", getId(key))).firstOrDefault()
+            }
+            ?.oAuthState
     }
 
     override fun saveOAuthState(key: String?, oAuthState: OAuthState) {

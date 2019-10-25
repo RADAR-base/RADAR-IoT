@@ -8,10 +8,10 @@ import org.slf4j.LoggerFactory
 import java.time.Instant
 
 class ManagementPortalAuthorizer(
-    val userId: String,
-    val managementPortalClient: ManagementPortalClient,
-    val oAuthStateStore: OAuthStateStore,
-    val loginStrategy: LoginStrategy<*>,
+    private val userId: String,
+    private val managementPortalClient: ManagementPortalClient,
+    private val oAuthStateStore: OAuthStateStore,
+    private val loginStrategy: LoginStrategy<*>,
     private val sourceId: String,
     private val sourceTypeModel: String = DEFAULT_SOURCE_TYPE_MODEL,
     private val sourceTypeProducer: String = DEFAULT_SOURCE_TYPE_PRODUCER,
@@ -62,29 +62,32 @@ class ManagementPortalAuthorizer(
         }
     }
 
-    override fun getAccessToken(): String {
+    /**
+     * Get the valid access token. If access token has expired, will try to get a new Access
+     * token from the Management portal.
+     * Throws [IllegalStateException] if access token is `null` or if not logged in.
+     */
+    override fun getAccessToken() = getOAuthState().accessToken
+
+    override fun getOAuthState(): OAuthState {
         check(isLoggedIn) { "Please login first" }
 
         return if (oAuthState.expiration.isAfter(Instant.now())) {
-            oAuthState.accessToken.ifEmpty {
-                throw IllegalStateException("Access token is empty. Please login first")
-            }
+            oAuthState
         } else {
             oAuthState =
                 managementPortalClient.refreshToken(oAuthState, AccessTokenParser(oAuthState))
             oAuthStateStore.saveOAuthState(null, oAuthState)
-            return oAuthState.accessToken
-
+            return oAuthState
         }
     }
 
-    override fun getOAuthState(): OAuthState = oAuthState
 
     override fun getAuthHeader(): Headers {
-        check(isLoggedIn) { "Please login first" }
-        return oAuthState.httpHeaders
+        val oAuthState1 = getOAuthState()
+        return oAuthState1.httpHeaders
             ?: Headers.Builder()
-                .set("Authorization", "Bearer ${getAccessToken()}")
+                .set("Authorization", "Bearer ${oAuthState1.accessToken}")
                 .build()
     }
 
