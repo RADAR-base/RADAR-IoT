@@ -15,4 +15,6 @@ interface Authorizer {
     fun getAuthHeader(): Headers
 
     fun isLoggedIn(): Boolean
+
+    fun isExpired(): Boolean
 }

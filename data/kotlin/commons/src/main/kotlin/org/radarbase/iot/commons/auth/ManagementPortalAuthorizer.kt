@@ -72,7 +72,7 @@ class ManagementPortalAuthorizer(
     override fun getOAuthState(): OAuthState {
         check(isLoggedIn) { "Please login first" }
 
-        return if (oAuthState.expiration.isAfter(Instant.now())) {
+        return if (!isExpired()) {
             oAuthState
         } else {
             oAuthState =
@@ -92,6 +92,8 @@ class ManagementPortalAuthorizer(
     }
 
     override fun isLoggedIn() = isLoggedIn
+
+    override fun isExpired(): Boolean = oAuthState.expiration.isBefore(Instant.now())
 
     private fun getRefreshToken(): OAuthState {
         val refreshToken = loginStrategy.getRefreshToken()
