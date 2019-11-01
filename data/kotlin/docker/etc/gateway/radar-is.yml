@@ -1,0 +1,3 @@
+resourceName: res_gateway
+publicKeyEndpoints:
+  - http://managementportal:8081/oauth/token_key
