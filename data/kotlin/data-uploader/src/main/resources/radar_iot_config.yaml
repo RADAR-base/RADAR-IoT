@@ -6,15 +6,22 @@ radarConfig:
   oAuthClientId: "radar_iot"
   oAuthClientSecret: "secret"
   metaToken: "dlsLwIw0E1cP"
+  schemaRegistryUrl: "http://localhost:8084/"
+  kafkaUrl: "http://localhost:8090/radar-gateway/"
+
 
 sensorConfigs:
   - sensorName: "coral-enviro-humidity"
     inputTopic: "coral-enviro-humidity"
     outputTopic: "coral_enviro_humidity"
-    converterClass: "org.radarbase.iot.converter.coralenviro.CoralEnviroHumidityAvroConverter"
+    converterClass: "org.radarbase.iot.converter.coralenviro.CoralEnviroHumidityConverter"
   - sensorName: "coral-enviro-temperature"
     inputTopic: "coral-enviro-temperature"
     outputTopic: "coral_enviro_temperature"
+    converterClass: "org.radarbase.iot.converter.coralenviro.CoralEnviroTemperatureConverter"
+  - sensorName: "mock"
+    inputTopic: "mock"
+    outputTopic: "mock"
     converterClass: "org.radarbase.iot.converter.coralenviro.CoralEnviroTemperatureConverter"
 
 dataConsumerConfigs:

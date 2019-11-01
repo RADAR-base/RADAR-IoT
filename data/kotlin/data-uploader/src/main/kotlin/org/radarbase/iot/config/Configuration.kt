@@ -33,7 +33,9 @@ data class Configuration(
         val baseUrl: String,
         val oAuthClientId: String,
         val oAuthClientSecret: String,
-        val metaToken: String?
+        val metaToken: String?,
+        val schemaRegistryUrl: String = "$baseUrl/schema",
+        val kafkaUrl: String = "$baseUrl/kafka"
     )
 
     data class SensorConfig(

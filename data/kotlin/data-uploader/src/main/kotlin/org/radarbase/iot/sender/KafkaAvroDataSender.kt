@@ -15,10 +15,9 @@ import org.radarbase.topic.AvroTopic
 import java.io.IOException
 
 open class KafkaAvroDataSender(
-    private val baseUrl: String,
     private val authorizer: Authorizer?,
-    private val kafkaUrl: String = "${baseUrl}/kafka",
-    private val schemaUrl: String = "${baseUrl}/schema",
+    private val kafkaUrl: String,
+    private val schemaUrl: String,
     private val client: RestClient = RestClient.global().apply {
         server(ServerConfig(kafkaUrl))
         gzipCompression(true)

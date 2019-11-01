@@ -25,5 +25,5 @@ data class RedisConnectionProperties(
     val host: String = Protocol.DEFAULT_HOST,
     val port: Int = Protocol.DEFAULT_PORT,
     val timeOut: Int = Protocol.DEFAULT_TIMEOUT,
-    val password: String = ""
+    val password: String? = null
 )
