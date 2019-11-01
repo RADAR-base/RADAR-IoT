@@ -2,12 +2,19 @@ package org.radarbase.iot.converter.coralenviro
 
 import org.radarbase.data.AvroRecordData
 import org.radarbase.data.RecordData
+import org.radarbase.iot.commons.util.Parser
 import org.radarbase.iot.converter.AvroConverter
+import org.radarbase.iot.converter.messageparser.JsonMessageParser
 import org.radarbase.iot.sensor.CoralEnviroLight
 import org.radarbase.topic.AvroTopic
 import org.radarcns.kafka.ObservationKey
+import org.slf4j.LoggerFactory
 
-class CoralEnviroLightConverter(private val topicName: String = "coral_enviro_light") :
+class CoralEnviroLightConverter(
+    private val topicName: String = "coral_enviro_light",
+    private val messageParser: Parser<String, List<CoralEnviroLight>> =
+        JsonMessageParser()
+) :
     AvroConverter<ObservationKey, CoralEnviroLight> {
     override fun getAvroTopic(): AvroTopic<ObservationKey, CoralEnviroLight> =
         AvroTopic(
@@ -18,12 +25,18 @@ class CoralEnviroLightConverter(private val topicName: String = "coral_enviro_li
     override fun convert(messages: List<String>): RecordData<ObservationKey, CoralEnviroLight> {
 
         val values: List<CoralEnviroLight> = messages.map {
-            CoralEnviroLight.getDecoder().decode(it.byteInputStream())
-        }
+            logger.debug("Parsing message: $it")
+            messageParser.parse(it)
+        }.flatten()
+
         return AvroRecordData<ObservationKey, CoralEnviroLight>(
             getAvroTopic(),
             AvroConverter.genericObservationKey,
             values
         )
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(CoralEnviroLightConverter::class.java)
     }
 }
