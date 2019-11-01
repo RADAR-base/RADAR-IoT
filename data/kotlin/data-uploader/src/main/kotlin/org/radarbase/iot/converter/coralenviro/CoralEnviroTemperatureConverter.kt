@@ -1,5 +1,6 @@
 package org.radarbase.iot.converter.coralenviro
 
+import com.fasterxml.jackson.core.type.TypeReference
 import org.radarbase.data.AvroRecordData
 import org.radarbase.data.RecordData
 import org.radarbase.iot.commons.util.Parser
@@ -13,7 +14,7 @@ import org.slf4j.LoggerFactory
 class CoralEnviroTemperatureAvroConverter(
     private val topicName: String = "coral_enviro_temperature",
     private val messageParser: Parser<String, List<CoralEnviroTemperature>> =
-        JsonMessageParser()
+        JsonMessageParser(typeReference)
 ) :
     AvroConverter<ObservationKey, CoralEnviroTemperature> {
     override fun getAvroTopic(): AvroTopic<ObservationKey, CoralEnviroTemperature> =
@@ -29,6 +30,8 @@ class CoralEnviroTemperatureAvroConverter(
             messageParser.parse(it)
         }.flatten()
 
+        logger.debug("Avro Values: ${values.map { it.toString() }}")
+
         return AvroRecordData<ObservationKey, CoralEnviroTemperature>(
             getAvroTopic(),
             AvroConverter.genericObservationKey,
@@ -38,5 +41,8 @@ class CoralEnviroTemperatureAvroConverter(
 
     companion object {
         private val logger = LoggerFactory.getLogger(CoralEnviroLightConverter::class.java)
+
+        private val typeReference = object : TypeReference<List<CoralEnviroTemperature>>() {}
+
     }
 }
