@@ -8,7 +8,7 @@ class RedisSubscriber(private val conn: RedisConnection) :
 
     init {
         // Test if the connection works. It will throw an error if it does not.
-        conn.getConnection().use {  }
+        check(conn.isConnected())
     }
 
     override fun subscribe(channel: String, consumer: JedisPubSub) {

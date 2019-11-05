@@ -1,8 +1,10 @@
 package org.radarbase.iot.pubsub.connection
 
-interface Connection {
+interface Connection<T> {
 
-    fun getConnection(): Any
+    fun getConnection(): T
 
     fun getConnectionPool(): Any
+
+    fun isConnected(): Boolean
 }

@@ -1,11 +1,11 @@
-package org.radarbase.iot.converter.coralenviro
+package org.radarbase.iot.converter.avro.coralenviro
 
 import com.fasterxml.jackson.core.type.TypeReference
 import org.radarbase.data.AvroRecordData
 import org.radarbase.data.RecordData
 import org.radarbase.iot.commons.util.Parser
-import org.radarbase.iot.converter.AvroConverter
-import org.radarbase.iot.converter.AvroConverter.Companion.genericObservationKey
+import org.radarbase.iot.converter.avro.AvroConverter
+import org.radarbase.iot.converter.avro.AvroConverter.Companion.genericObservationKey
 import org.radarbase.iot.converter.messageparser.JsonMessageParser
 import org.radarbase.iot.sensor.CoralEnviroHumidity
 import org.radarbase.topic.AvroTopic

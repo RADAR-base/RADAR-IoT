@@ -1,5 +1,8 @@
 package org.radarbase.iot.consumer
 
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.apache.avro.SchemaValidationException
 import org.radarbase.config.ServerConfig
 import org.radarbase.data.RecordData
@@ -8,7 +11,7 @@ import org.radarbase.iot.commons.auth.MetaTokenLoginStrategy
 import org.radarbase.iot.commons.auth.PersistentOAuthStateStore
 import org.radarbase.iot.commons.managementportal.ManagementPortalClient
 import org.radarbase.iot.config.Configuration.Companion.CONFIGURATION
-import org.radarbase.iot.converter.AvroConverter
+import org.radarbase.iot.converter.avro.AvroConverter
 import org.radarbase.iot.sender.KafkaAvroDataSender
 import org.slf4j.LoggerFactory
 import java.io.IOException
@@ -62,6 +65,7 @@ open class RestProxyDataConsumer : DataConsumer<AvroConverter<*, *>> {
                 ),
                 oAuthStateStore = PersistentOAuthStateStore(nitriteProperties),
                 sourceId = CONFIGURATION.radarConfig.sourceId,
+                // TODO: Change these to the correct ones
                 sourceTypeModel = "E4",
                 sourceTypeProducer = "Empatica",
                 sourceTypeCatalogVersion = "v1"
@@ -81,10 +85,13 @@ open class RestProxyDataConsumer : DataConsumer<AvroConverter<*, *>> {
                     "Messages for $k could not be sent. Adding to cache " +
                             "to be sent later...", exc
                 )
-                // TODO("Add to records Cache ")
+                GlobalScope.launch(exceptionHadler) {
+                    messages.forEach { (t, u) ->
+                        u.forEach { handleData(it, t) }
+                    }
+                }
             }
         }
-
     }
 
     @Throws(IOException::class)
@@ -97,9 +104,14 @@ open class RestProxyDataConsumer : DataConsumer<AvroConverter<*, *>> {
                         "validation failure. Discarding these messages.", exc
             )
         }
+        logger.info("Successfully uploaded ${records.size()} records.")
     }
 
     companion object {
         private val logger = LoggerFactory.getLogger(this::class.java)
+
+        private val exceptionHadler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, e ->
+            logger.warn("Error while uploading records to Rest proxy", e)
+        }
     }
 }

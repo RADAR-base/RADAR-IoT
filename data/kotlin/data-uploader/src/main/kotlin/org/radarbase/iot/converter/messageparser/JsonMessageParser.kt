@@ -14,16 +14,12 @@ import java.io.IOException
  */
 class JsonMessageParser<out T>(private val typeReference: TypeReference<T>) : Parser<String, T> {
 
-    init {
-        objectMapper.registerModule(KotlinModule())
-    }
-
     @Throws(IOException::class)
     override fun parse(value: String): T {
         return objectMapper.readValue(value, typeReference)
     }
 
     companion object {
-        private val objectMapper = ObjectMapper()
+        private val objectMapper = ObjectMapper().also { it.registerModule(KotlinModule()) }
     }
 }

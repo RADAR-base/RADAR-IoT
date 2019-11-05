@@ -17,13 +17,15 @@ data class Configuration(
     val sensorConfigs: List<SensorConfig>,
     val dataConsumerConfigs: List<DataConsumerConfig>,
     val redisProperties: RedisConnectionProperties?,
-    val persistenceStoreproperties: PersistentOAuthStateStore.NitriteProperties?
+    val persistenceStoreproperties: PersistentOAuthStateStore.NitriteProperties?,
+    val influxDbConfig: InfluxDbConfig?
 ) {
 
     data class DataConsumerConfig(
         val consumerClass: String,
         val maxCacheSize: Int,
-        val uploadIntervalSeconds: Int
+        val uploadIntervalSeconds: Int,
+        val consumerName: String
     )
 
     data class RadarConfig(
@@ -42,7 +44,22 @@ data class Configuration(
         val sensorName: String,
         val inputTopic: String,
         val outputTopic: String,
+        val converterClasses: List<Converters>
+    )
+
+    data class Converters(
+        val consumerName: String,
         val converterClass: String
+    )
+
+    data class InfluxDbConfig(
+        val url: String = "http://localhost:8086",
+        val username: String = "root",
+        val password: String = "root",
+        val dbName: String = "radarIot",
+        val retentionPolicyName: String = "radarIotRetentionPolicy",
+        val retentionPolicyDuration: String = "1h",
+        val retentionPolicyReplicationFactor: Int = 1
     )
 
     companion object {

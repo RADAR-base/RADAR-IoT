@@ -1,13 +1,14 @@
 package org.radarbase.iot.pubsub.connection
 
 import org.radarbase.iot.commons.util.SingletonHolder
+import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
 import redis.clients.jedis.Protocol
 
 class RedisConnection(
     val redisConnectionProperties: RedisConnectionProperties
-) : Connection {
+) : Connection<Jedis> {
 
     override fun getConnectionPool(): Any = jedisPoolFactory.getInstance(redisConnectionProperties)
 
@@ -19,6 +20,8 @@ class RedisConnection(
             JedisPool(JedisPoolConfig(), it.host, it.port, it.timeOut, it.password)
         }
     }
+
+    override fun isConnected(): Boolean = getConnection().use { it.ping() != null }
 }
 
 data class RedisConnectionProperties(

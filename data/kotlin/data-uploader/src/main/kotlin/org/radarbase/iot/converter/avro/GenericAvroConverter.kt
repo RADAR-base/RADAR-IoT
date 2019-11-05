@@ -1,4 +1,4 @@
-package org.radarbase.iot.converter
+package org.radarbase.iot.converter.avro
 
 import org.radarbase.data.RecordData
 import org.radarbase.topic.AvroTopic

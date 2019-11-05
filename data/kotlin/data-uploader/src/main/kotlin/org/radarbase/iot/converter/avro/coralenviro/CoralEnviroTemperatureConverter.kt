@@ -1,17 +1,17 @@
-package org.radarbase.iot.converter.coralenviro
+package org.radarbase.iot.converter.avro.coralenviro
 
 import com.fasterxml.jackson.core.type.TypeReference
 import org.radarbase.data.AvroRecordData
 import org.radarbase.data.RecordData
 import org.radarbase.iot.commons.util.Parser
-import org.radarbase.iot.converter.AvroConverter
+import org.radarbase.iot.converter.avro.AvroConverter
 import org.radarbase.iot.converter.messageparser.JsonMessageParser
 import org.radarbase.iot.sensor.CoralEnviroTemperature
 import org.radarbase.topic.AvroTopic
 import org.radarcns.kafka.ObservationKey
 import org.slf4j.LoggerFactory
 
-class CoralEnviroTemperatureAvroConverter(
+class CoralEnviroTemperatureConverter(
     private val topicName: String = "coral_enviro_temperature",
     private val messageParser: Parser<String, List<CoralEnviroTemperature>> =
         JsonMessageParser(typeReference)

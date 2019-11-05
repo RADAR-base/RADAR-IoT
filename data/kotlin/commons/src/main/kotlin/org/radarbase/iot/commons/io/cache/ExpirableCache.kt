@@ -11,7 +11,7 @@ import kotlin.concurrent.scheduleAtFixedRate
  * support Expiring cache replacement policy. A [consumer] must be provided to consume the values
  * when they are removed. Setting [autoFlush] to <true> will enable a periodic flush even when
  * there are no operations. Otherwise the flushing is only performed during operations.
- * More info on [LRU](https://en.wikipedia.org/wiki/Cache_replacement_policies#LRU)
+ * More info on (https://en.wikipedia.org/wiki/Cache_replacement_policies)
  */
 class ExpirableCache<K, V>(
     private val delegate: Cache<K, V>,
