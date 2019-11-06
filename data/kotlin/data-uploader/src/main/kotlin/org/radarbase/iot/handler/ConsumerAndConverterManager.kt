@@ -6,6 +6,7 @@ import org.radarbase.iot.consumer.DataConsumer
 import org.radarbase.iot.converter.Converter
 import org.slf4j.LoggerFactory
 import java.util.*
+import kotlin.system.exitProcess
 
 class ConsumerAndConverterManager(
     private val configuration: Configuration
@@ -24,16 +25,20 @@ class ConsumerAndConverterManager(
     init {
 
         for (dataConsumerConfig in configuration.dataConsumerConfigs) {
-            dataConsumerNameMap[dataConsumerConfig.consumerName] =
-                Class.forName(dataConsumerConfig.consumerClass)?.constructors?.first { constructor ->
-                    constructor.parameterCount == 2 && constructor.parameterTypes
-                        .all { it == Int::class.java }
-                }?.newInstance(
-                    dataConsumerConfig.uploadIntervalSeconds, dataConsumerConfig.maxCacheSize
-                )?.let { it as DataConsumer<Converter<*, *>> } ?: throw ConfigurationException(
-                    "Cannot instantiate data " +
-                            "consumer ${dataConsumerConfig.consumerClass}"
-                )
+            try {
+                dataConsumerNameMap[dataConsumerConfig.consumerName] =
+                    Class.forName(dataConsumerConfig.consumerClass)?.constructors?.first { constructor ->
+                        constructor.parameterCount == 2 && constructor.parameterTypes
+                            .all { it == Int::class.java }
+                    }?.newInstance(
+                        dataConsumerConfig.uploadIntervalSeconds, dataConsumerConfig.maxCacheSize
+                    )?.let { it as DataConsumer<Converter<*, *>> } ?: throw ConfigurationException(
+                        "Cannot instantiate data " +
+                                "consumer ${dataConsumerConfig.consumerClass}"
+                    )
+            } catch (exc: Exception) {
+                logger.warn("Could not instantiate ${dataConsumerConfig.consumerClass}", exc)
+            }
         }
 
         for (sensorConf in configuration.sensorConfigs) {
@@ -47,11 +52,28 @@ class ConsumerAndConverterManager(
                     "Cannot instantiate data " +
                             "consumer ${converters.converterClass}"
                 )
-                listOfConverters.add(ConsumerConverterMap(converters.consumerName, converter))
-
-                logger.info("Subscribing $converter and ${sensorConf.inputTopic}")
+                if (dataConsumerNameMap.keys.contains(converters.consumerName)) {
+                    listOfConverters.add(ConsumerConverterMap(converters.consumerName, converter))
+                }
                 channelConverterMap[sensorConf.inputTopic] = listOfConverters
             }
+        }
+
+        require(channelConverterMap.values.any { converterMap ->
+            dataConsumerNameMap.keys.any { name ->
+                converterMap.any {
+                    it.consumerName == name
+                }
+            }
+        }) {
+            logger.error(
+                "No valid association found between consumers and sensors. Please specify at least " +
+                        "once sensor that a consumer is subscribed to in the configuration. " +
+                        "Otherwise there is not point in running this application. Look for any " +
+                        "other error before this one that may have caused this.",
+                ConfigurationException("Invalid Configuration. The program will exit now...")
+            )
+            exitProcess(1)
         }
 
     }

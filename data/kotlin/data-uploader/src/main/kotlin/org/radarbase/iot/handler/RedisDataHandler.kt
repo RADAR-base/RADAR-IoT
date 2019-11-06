@@ -45,18 +45,27 @@ class RedisDataHandler : JedisPubSub(),
     @Throws(ConfigurationException::class)
     override fun start() {
         for (sensorConf in CONFIGURATION.sensorConfigs) {
-            subscriberFactory.getInstance(redisProperties).subscribe(sensorConf.inputTopic, this)
-            logger.info("Subscribed to ${sensorConf.inputTopic}")
+            GlobalScope.launch(exceptionHandler) {
+                subscriberFactory.getInstance(redisProperties).subscribe(
+                    sensorConf.inputTopic,
+                    this@RedisDataHandler
+                )
+                logger.info("Subscribed to ${sensorConf.inputTopic}")
+            }
         }
     }
 
     override fun stop() {
         logger.info("Stopping ${this::class.java.name}...")
-        consumerAndConverterManager.getAllChannels().forEach {
-            this.unsubscribe(it)
+        try {
+            consumerAndConverterManager.getAllChannels().forEach {
+                this.unsubscribe(it)
+            }
+            consumerAndConverterManager.dataConsumerNameMap.values.forEach { it.close() }
+            logger.info("Gracefully stopped ${this::class.java.name}")
+        } catch (exc: UninitializedPropertyAccessException) {
+            logger.info("The ${this::class.java.name} was not initialised properly.")
         }
-        consumerAndConverterManager.dataConsumerNameMap.values.forEach { it.close() }
-        logger.info("Gracefully stopped ${this::class.java.name}")
     }
 
     override fun onMessage(channel: String?, message: String?) {
@@ -65,10 +74,15 @@ class RedisDataHandler : JedisPubSub(),
         // Forward the message to all the dataConsumers by launching a coroutine
         GlobalScope.launch(exceptionHandler) {
             consumerAndConverterManager.dataConsumerNameMap.forEach { (consumerName, consumer) ->
-                consumer.handleData(
-                    message, consumerAndConverterManager
-                        .converterForChannelAndConsumer(channel!!, consumerName)
-                )
+                try {
+                    consumer.handleData(
+                        message, consumerAndConverterManager
+                            .converterForChannelAndConsumer(channel!!, consumerName)
+                    )
+                } catch (exc: NoSuchElementException) {
+                    // No op as this consumer may not be registered on this channel and hence no
+                    // converter found.
+                }
             }
         }
     }
@@ -102,5 +116,4 @@ class RedisDataHandler : JedisPubSub(),
 
         private val logger = LoggerFactory.getLogger(RedisDataHandler::class.java)
     }
-
 }
