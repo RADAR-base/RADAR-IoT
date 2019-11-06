@@ -1,5 +1,6 @@
 package org.radarbase.iot.consumer
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -26,7 +27,11 @@ class InfluxDbDataConsumer(
                     }
                 }
             }.invokeOnCompletion {
-                logger.info("Successfully added $size records to InfluxDb")
+                when (it) {
+                    null -> logger.info("Successfully added $size records to InfluxDb")
+                    is CancellationException -> logger.info("Sending records to InfluxDb was cancelled.")
+                    else -> logger.warn("Exception when adding records to InfluxDb", it)
+                }
                 conn.close()
             }
         } else {
@@ -34,6 +39,7 @@ class InfluxDbDataConsumer(
                 "Could not process records as InfluxDb connection was not available. " +
                         "Adding back to cache."
             )
+            // TODO: Add to a persistent cache
             GlobalScope.launch(exceptionHadler) {
                 messages.forEach { (t, u) ->
                     u.forEach {

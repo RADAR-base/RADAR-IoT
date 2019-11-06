@@ -12,7 +12,7 @@ abstract class DataConsumer<T : Converter<*, *>>(
     private val uploadIntervalSeconds: Int,
     private val maxCacheSize: Int
 ) {
-    protected var cache: Cache<T, List<String>> = ExpirableCache(
+    protected var cache: Cache<T, MutableList<String>> = ExpirableCache(
         delegate = LRUCache(
             delegate = SimpleCache(),
             maxSize = maxCacheSize,
@@ -26,7 +26,7 @@ abstract class DataConsumer<T : Converter<*, *>>(
     open fun handleData(message: String?, converter: T) {
         logger.info("Got message: $message")
         message?.let {
-            val messages = cache.get(converter)?.toMutableList() ?: mutableListOf()
+            val messages = cache.get(converter) ?: mutableListOf()
             messages.add(message)
             cache.set(converter, messages)
         }

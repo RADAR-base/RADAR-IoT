@@ -37,7 +37,7 @@ REPLICATION ${influxDbConfig.retentionPolicyReplicationFactor} DEFAULT"""
         false
     }
 
-    fun createConnection(): InfluxDB = InfluxDBFactory.connect(
+    private fun createConnection(): InfluxDB = InfluxDBFactory.connect(
         influxDbConfig.url, influxDbConfig.username, influxDbConfig.password
     ).apply {
         setDatabase(influxDbConfig.dbName)

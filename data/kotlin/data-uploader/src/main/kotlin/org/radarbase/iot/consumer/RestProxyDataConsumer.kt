@@ -85,6 +85,7 @@ open class RestProxyDataConsumer : DataConsumer<AvroConverter<*, *>> {
                     "Messages for $k could not be sent. Adding to cache " +
                             "to be sent later...", exc
                 )
+                // TODO: Add to a persistent cache
                 GlobalScope.launch(exceptionHadler) {
                     messages.forEach { (t, u) ->
                         u.forEach { handleData(it, t) }
