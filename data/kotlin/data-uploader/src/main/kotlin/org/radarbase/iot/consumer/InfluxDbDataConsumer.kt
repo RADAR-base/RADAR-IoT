@@ -20,10 +20,12 @@ class InfluxDbDataConsumer(
             val conn = influxDbConnection.getConnection()
             var size = 0
             GlobalScope.launch(exceptionHadler) {
-                messages.forEach { (k, v) ->
-                    k.convert(v).forEach {
-                        size++
-                        conn.write(it)
+                conn.use {
+                    messages.forEach { (k, v) ->
+                        k.convert(v).forEach {
+                            size++
+                            conn.write(it)
+                        }
                     }
                 }
             }.invokeOnCompletion {
@@ -32,7 +34,6 @@ class InfluxDbDataConsumer(
                     is CancellationException -> logger.info("Sending records to InfluxDb was cancelled.")
                     else -> logger.warn("Exception when adding records to InfluxDb", it)
                 }
-                conn.close()
             }
         } else {
             logger.warn(
@@ -48,6 +49,11 @@ class InfluxDbDataConsumer(
                 }
             }
         }
+    }
+
+    override fun close() {
+        processData(this.cache.toMap()).also { this.cache.clear() }
+        influxDbConnection.close()
     }
 
     companion object {

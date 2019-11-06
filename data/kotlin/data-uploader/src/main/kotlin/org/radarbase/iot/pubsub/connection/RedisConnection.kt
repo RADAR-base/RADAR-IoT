@@ -15,13 +15,17 @@ class RedisConnection(
     override fun getConnection() = jedisPoolFactory.getInstance(redisConnectionProperties)
         .resource!!
 
+    override fun isConnected(): Boolean = getConnection().use { it.ping() != null }
+
+    override fun close() {
+        jedisPoolFactory.getInstance(redisConnectionProperties).close()
+    }
+
     companion object {
         val jedisPoolFactory = SingletonHolder<JedisPool, RedisConnectionProperties> {
             JedisPool(JedisPoolConfig(), it.host, it.port, it.timeOut, it.password)
         }
     }
-
-    override fun isConnected(): Boolean = getConnection().use { it.ping() != null }
 }
 
 data class RedisConnectionProperties(

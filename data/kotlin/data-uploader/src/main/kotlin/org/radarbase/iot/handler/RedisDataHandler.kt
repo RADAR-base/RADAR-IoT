@@ -51,9 +51,12 @@ class RedisDataHandler : JedisPubSub(),
     }
 
     override fun stop() {
+        logger.info("Stopping ${this::class.java.name}...")
         consumerAndConverterManager.getAllChannels().forEach {
             this.unsubscribe(it)
         }
+        consumerAndConverterManager.dataConsumerNameMap.values.forEach { it.close() }
+        logger.info("Gracefully stopped ${this::class.java.name}")
     }
 
     override fun onMessage(channel: String?, message: String?) {

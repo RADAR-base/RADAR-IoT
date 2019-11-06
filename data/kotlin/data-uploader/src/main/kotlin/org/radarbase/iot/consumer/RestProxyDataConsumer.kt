@@ -95,6 +95,11 @@ open class RestProxyDataConsumer : DataConsumer<AvroConverter<*, *>> {
         }
     }
 
+    override fun close() {
+        processData(this.cache.toMap()).also { this.cache.clear() }
+        kafkaDataSender.close()
+    }
+
     @Throws(IOException::class)
     open fun <K, V> sendToRestProxy(records: RecordData<K, V>) {
         try {

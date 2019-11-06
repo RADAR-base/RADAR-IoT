@@ -6,12 +6,13 @@ import org.radarbase.iot.commons.io.cache.LRUCache
 import org.radarbase.iot.commons.io.cache.SimpleCache
 import org.radarbase.iot.converter.Converter
 import org.slf4j.LoggerFactory
+import java.io.Closeable
 import java.time.Duration
 
 abstract class DataConsumer<T : Converter<*, *>>(
     private val uploadIntervalSeconds: Int,
     private val maxCacheSize: Int
-) {
+) : Closeable {
     protected var cache: Cache<T, MutableList<String>> = ExpirableCache(
         delegate = LRUCache(
             delegate = SimpleCache(),
@@ -20,7 +21,7 @@ abstract class DataConsumer<T : Converter<*, *>>(
         ),
         flushInterval = Duration.ofSeconds(uploadIntervalSeconds.toLong()),
         autoFlush = true,
-        consumer = { m -> processData(m) }
+        consumer = ::processData
     )
 
     open fun handleData(message: String?, converter: T) {

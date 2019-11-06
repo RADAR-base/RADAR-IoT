@@ -32,9 +32,13 @@ REPLICATION ${influxDbConfig.retentionPolicyReplicationFactor} DEFAULT"""
     }
 
     override fun isConnected(): Boolean = try {
-        createConnection().ping().isGood
+        createConnection().use { it.ping().isGood }
     } catch (exc: InfluxDBException) {
         false
+    }
+
+    override fun close() {
+        // No op
     }
 
     private fun createConnection(): InfluxDB = InfluxDBFactory.connect(

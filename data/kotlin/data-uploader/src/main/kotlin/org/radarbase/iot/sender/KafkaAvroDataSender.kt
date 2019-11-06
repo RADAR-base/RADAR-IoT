@@ -53,6 +53,10 @@ open class KafkaAvroDataSender(
         return kafkaSender.isConnected
     }
 
+    override fun close() {
+        kafkaSender.close()
+    }
+
     private fun getRestSender(): RestSender {
 
         val builder = RestSender.Builder().apply {

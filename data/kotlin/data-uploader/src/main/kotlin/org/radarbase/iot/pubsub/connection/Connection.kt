@@ -1,6 +1,8 @@
 package org.radarbase.iot.pubsub.connection
 
-interface Connection<T> {
+import java.io.Closeable
+
+interface Connection<T>: Closeable {
 
     fun getConnection(): T
 
