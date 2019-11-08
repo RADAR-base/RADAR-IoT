@@ -33,6 +33,8 @@ sensorConfigs:
     converterClasses:
       - consumerName: "rest_proxy"
         converterClass: "org.radarbase.iot.converter.avro.coralenviro.CoralEnviroTemperatureConverter"
+      - consumerName: "influx_db"
+        converterClass: "org.radarbase.iot.converter.influxdb.coralenviro.CoralEnviroHumidityInfluxDbConverter"
 
 dataConsumerConfigs:
   - consumerClass: "org.radarbase.iot.consumer.RestProxyDataConsumer"

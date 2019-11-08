@@ -1,5 +1,5 @@
 # DATA UPLOADER
-This is an application for consuming data exposed by the [RADAR-IoT](https://github.com/RADAR-base/RADAR-IoT) framework and uploading to to different destinations.
+This is an application for consuming data exposed by the pub/sub system in the [RADAR-IoT](https://github.com/RADAR-base/RADAR-IoT) framework and processing/uploading to to different destinations.
 The application consumes data from channels in a pub/sub system and can consume it in various ways. One such implementation provided is uploading the data to the [RADAR-base platform's backend](https://github.com/RADAR-base/RADAR-Docker).
 
 ## Terminology
@@ -21,7 +21,7 @@ This can be run as a normal jvm application by running the main class `org.radar
 For the [Rest Proxy Data Consumer](/src/main/kotlin/org/radarbase/iot/consumer/RestProxyDataConsumer.kt), by default, authorization is enabled using [Management Portal](https://github.com/RADAR-base/ManagementPortal) and hence the uploader will work with [Gateway](https://github.com/RADAR-base/RADAR-Gateway) as well as [Rest Proxy](https://docs.confluent.io/current/kafka-rest/index.html)
 
 ## Contributing
-For contributing, please take a look at the `commons` module and `data-uploader` module. Please create a PR and we will review it.
+For contributing, please take a look at the `commons` module and `data-uploader` module. Code should be formatted using the Kotlin Style Guide. If you want to contribute a feature or fix, browse our issues and please make a pull request.
 For simple additions like new sensors, please take a look in the [converter](/src/main/kotlin/org/radarbase/iot/converter) package where you will need to add new Converters for your sensor based on the consumers.
 
 ### Extending

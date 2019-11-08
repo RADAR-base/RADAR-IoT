@@ -3,7 +3,7 @@
 *.iml
 
 ## gradle
-.gradle
+/.gradle/
 
 *.DS_Store
 
