@@ -2,13 +2,8 @@ matrix:
   include:
     - language: python
       python:
-        - "3.4"
-        - "3.5"
-        - "3.6"      # current default Python on Travis CI
         - "3.7"
         - "3.8"
-        - "3.8-dev"  # 3.8 development branch
-        - "nightly"  # nightly build
 
       services:
         - redis-server
@@ -55,8 +50,8 @@ matrix:
 
       # command to install dependencies
       install:
-        - ./data/kotlin/gradlew build
+        - ./data/kotlin/data-uploader/gradlew build
 
       script:
-        - ./data/kotlin/gradlew run &
+        - ./data/kotlin/data-uploader/gradlew run &
         - sleep 200 && exit 0
