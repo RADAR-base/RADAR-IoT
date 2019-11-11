@@ -55,7 +55,7 @@ matrix:
 
       # command to install dependencies
       install:
-        - ./data/kotlin/gradlew assemble
+        - ./data/kotlin/gradlew build
 
       script:
         - ./data/kotlin/gradlew run &
