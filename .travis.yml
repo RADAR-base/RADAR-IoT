@@ -18,7 +18,7 @@ matrix:
 
       # command to install dependencies
       install:
-        - pip install -r requirements.txt
+        - pip3 install -r requirements.txt
         - cp travis/config.yaml.template config.yaml
 
       script:
@@ -49,7 +49,7 @@ matrix:
         - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
         - chmod +x docker-compose
         - sudo mv docker-compose /usr/local/bin
-        - docker-compose -f data/kotlin/docker/docker-compose.yml -f data/kotlin/docker/influxdb.yml
+        - docker-compose -f data/kotlin/docker/docker-compose.yml -f data/kotlin/docker/influxdb.yml up -d
         # Wait for services to start up.
         - sleep 50
 
