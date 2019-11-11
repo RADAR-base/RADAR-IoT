@@ -43,14 +43,17 @@ publisher:
 converter:
   name: 'avro'
   module: 'commons.message_converter'
-  class: 'AvroConverter'
+  class: 'AvroValidatedJsonConverter'
   schema_retriever:
     module: 'commons.schema'
-    class: 'FileAvroSchemaRetriever'
+    class: 'GithubAvroSchemaRetriever'
     args:
-      filepath: '/base/path/to/the/files'
+      repo_owner: 'RADAR-base'
+      repo_name: 'RADAR-Schemas'
+      branch: 'sensors'
+      basepath: 'commons/iot/sensor'
       extension: '.avsc'
 
 expose_topic_endpoint: True
-root_logger_level: INFO
+root_logger_level: DEBUG
 scheduler_max_threads: 10

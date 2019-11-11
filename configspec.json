@@ -89,9 +89,6 @@
         "class": {
           "type": "string"
         },
-        "validate_only": {
-          "type": "boolean"
-        },
         "schema_retriever": {
           "type": "object",
           "properties": {
@@ -122,6 +119,9 @@
     },
     "scheduler_max_threads": {
       "type": "integer"
+    },
+    "travis": {
+      "type": "boolean"
     }
   },
   "required": [
