@@ -1,9 +1,9 @@
 matrix:
   include:
-    - language: python
+    - dist: bionic
+      language: python
       python:
-        - "3.7"
-        - "3.8"
+        - "3.7.1"
 
       services:
         - redis-server
@@ -47,11 +47,12 @@ matrix:
         - docker-compose -f data/kotlin/docker/docker-compose.yml -f data/kotlin/docker/influxdb.yml up -d
         # Wait for services to start up.
         - sleep 50
+        - cd data/kotlin/data-uploader
 
       # command to install dependencies
       install:
-        - ./data/kotlin/data-uploader/gradlew build
+        - ./gradlew build
 
       script:
-        - ./data/kotlin/data-uploader/gradlew run &
-        - sleep 200 && exit 0
+        - screen -d -m -S data-uploader ./gradlew run
+        - sleep 200 && screen -S data-uploader -X quit
