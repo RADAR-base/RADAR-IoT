@@ -1,3 +1,4 @@
+import json
 import logging
 from abc import ABC, abstractmethod
 
@@ -10,7 +11,7 @@ logger = logging.getLogger('root')
 
 class MessageConverter(ABC):
 
-    def __init__(self, schema_retriever, validate_only):
+    def __init__(self):
         super().__init__()
 
     @abstractmethod
@@ -21,39 +22,48 @@ class MessageConverter(ABC):
     def convert_all(self, msgs, schema_name):
         pass
 
-    @abstractmethod
-    def validate(self, msg, schema_name):
-        pass
-
-    @abstractmethod
-    def validate_all(self, schema_name, msgs):
-        pass
-
 
 class AvroConverter(MessageConverter):
 
-    def __init__(self, schema_retriever: SchemaRetriever, validate_only=True):
+    def __init__(self, schema_retriever: SchemaRetriever):
         self.schema_retriever = schema_retriever
-        self.validate_only = validate_only
-        super().__init__(schema_retriever, validate_only)
+        super().__init__()
 
     def convert(self, msg, schema_name):
         logger.debug(f'Converting {msg} using the class {self.__class__.__name__} and schema {schema_name}')
-        if self.validate_only:
-            # If validate only is true don't do any conversion and return the message.
-            return msg
-        else:
-            # TDOD Do the conversion.
-            return msg
+        # TDOD Do the conversion.
+        return msg
 
     def convert_all(self, msgs, schema_name):
         logger.debug(f'Converting {msgs} using the class {self.__class__.__name__} and schema {schema_name}')
-        if self.validate_only:
-            # If validate only is true don't do any conversion and return the message.
-            return msgs
+        # TDOD Do the conversion.
+        return msgs
+
+
+class AvroValidatedJsonConverter(MessageConverter):
+
+    def __init__(self, schema_retriever: SchemaRetriever):
+        self.schema_retriever = schema_retriever
+        super().__init__()
+
+    def convert(self, msg, schema_name):
+        logger.debug(f'Converting {msg} using the class {self.__class__.__name__} and schema {schema_name}')
+        if self.validate(msg, schema_name):
+            # For consistency we write a single message also as a list
+            return json.dumps([msg])
         else:
-            # TDOD Do the conversion.
-            return msgs
+            logger.warning(
+                f'Validation failed for messages {msg}. Please look for any errors. Not publishing...')
+            return None
+
+    def convert_all(self, msgs, schema_name):
+        logger.debug(f'Converting {msgs} using the class {self.__class__.__name__} and schema {schema_name}')
+        if self.validate_all(msgs, schema_name):
+            return json.dumps(msgs)
+        else:
+            logger.warning(
+                f'Validation failed for messages {msgs}. Please look for any errors. Not publishing...')
+            return None
 
     def validate(self, msg, schema_name):
         logger.debug(f'Validating {msg} using the class {self.__class__.__name__} and schema {schema_name}')

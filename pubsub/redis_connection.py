@@ -16,7 +16,7 @@ class RedisConnection(Connection):
 
     # Create a dummy connection to check if REDIS is available and future connections can be made
     def connect(self) -> None:
-        logger.debug(f'Connecting to Redis at {super().host}:{super().port}')
+        logger.debug(f'Connecting to Redis at {self.host}:{self.port}')
         dummy_connection = self.redis_conn_pool.make_connection()
         dummy_connection.register_connect_callback(self.on_connect)
         dummy_connection.connect()
