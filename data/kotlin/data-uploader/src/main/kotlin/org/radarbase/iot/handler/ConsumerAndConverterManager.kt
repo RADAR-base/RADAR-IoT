@@ -68,9 +68,9 @@ class ConsumerAndConverterManager(
         }) {
             logger.error(
                 "No valid association found between consumers and sensors. Please specify at least " +
-                        "once sensor that a consumer is subscribed to in the configuration. " +
-                        "Otherwise there is not point in running this application. Look for any " +
-                        "other error before this one that may have caused this.",
+                        "one sensor that a consumer is subscribed to in the configuration. " +
+                        "Otherwise there is no point in running this application. Look for any " +
+                        "other errors before this one that may have caused this.",
                 ConfigurationException("Invalid Configuration. The program will exit now...")
             )
             exitProcess(1)
