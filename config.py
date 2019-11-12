@@ -46,15 +46,13 @@ EXPOSE_TOPIC_ENDPOINT = True
 SCHEDULER_MAX_THREADS = 10
 
 CONVERTER = None
-TRAVIS = False
 
 DEFAULT_CONF = {
     PUBLISHER_KEY: PUBLISHER,
     ROOT_LOGGER_LEVEL_KEY: LOGGER_LEVEL,
     CONVERTER_KEY: CONVERTER,
     SCHEDULER_MAX_THREADS_KEY: SCHEDULER_MAX_THREADS,
-    EXPOSE_TOPIC_ENDPOINT_KEY: EXPOSE_TOPIC_ENDPOINT,
-    'travis': TRAVIS
+    EXPOSE_TOPIC_ENDPOINT_KEY: EXPOSE_TOPIC_ENDPOINT
 }
 
 
@@ -80,7 +78,7 @@ class Configuration:
         if rc is False or err != '':
             raise AttributeError('Invalid configuration', err)
         else:
-            self.logger.info('Successfully loaded configuration from %s' % self.FILENAME)
+            self.logger.info(f'Successfully loaded configuration from {self.FILENAME}')
 
     def get_config(self):
         return self.config

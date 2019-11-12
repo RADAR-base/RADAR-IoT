@@ -119,9 +119,6 @@
     },
     "scheduler_max_threads": {
       "type": "integer"
-    },
-    "travis": {
-      "type": "boolean"
     }
   },
   "required": [

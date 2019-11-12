@@ -17,7 +17,8 @@ matrix:
         - cp travis/config.yaml.template config.yaml
 
       script:
-        - python3 main.py
+        # Run the test for 200 seconds.
+        - python3 test_runner.py 200
 
     - language: java
       jdk:
@@ -54,5 +55,6 @@ matrix:
         - ./gradlew build
 
       script:
-        - screen -d -m -S data-uploader ./gradlew run
+        - screen -L -d -m -S data-uploader ./gradlew run
         - sleep 200 && screen -S data-uploader -X quit
+        - cat screenlog.0

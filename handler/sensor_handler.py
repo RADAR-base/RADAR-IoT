@@ -41,19 +41,11 @@ class SensorHandler:
         # start polling the sensors using threads from the scheduler default thread pool.
         for x in self.sensors:
             self.scheduler.add_job(x.poll, 'interval', seconds=x.poll_freq_ms / 1000, name=f'{x.topic}-poller')
-        try:
-            import time
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            logging.warning(f'The process {self.__class__.__name__} was interrupted. Gracefully shutting down...')
-        finally:
-            self._graceful_stop()
 
     def get_topics(self):
         return [x.topic for x in self.sensors]
 
-    def _graceful_stop(self):
+    def graceful_stop(self):
         if self.scheduler.running:
             self.scheduler.shutdown(wait=True)
         for sensor in self.sensors:
