@@ -71,11 +71,31 @@ class FileAvroSchemaRetriever(AvroSchemaRetriever):
 
 class SchemaRegistrySchemaRetriever(AvroSchemaRetriever):
     def __init__(self, **kwargs):
+        try:
+            self.schema_registry_url = kwargs['kwargs']['schema_registry_url']
+        except KeyError:
+            raise AttributeError('schema_registry_url needed to use the this schema retriever. Please configure it.')
         super().__init__(**kwargs)
 
     def get_all_schemas(self, **kwargs) -> ExpiringDict:
-        return dict()
+        schemas = ExpiringDict(max_len=200, max_age_seconds=86400)
+        logger.info(f'Loading schemas from Schema registry at {self.schema_registry_url}')
+        import requests as req
+        schema_names = req.get(f'{self.schema_registry_url}/subjects').json()
+        for schema in schema_names:
+            if '-key' not in schema and 'org.radarcns.stream' not in schema:
+                schemas[schema] = parse_schema(
+                    loads(req.get(f'{self.schema_registry_url}/subjects/{schema}/versions/latest').json()['schema']))
 
+        return schemas
+
+    def get_schema(self, schema_name=None, **kwargs):
+        import requests as req
+        try:
+            return parse_schema(
+                loads(req.get(f'{self.schema_registry_url}/subjects/{schema_name}/versions/latest').json()['schema']))
+        except:
+            return super().get_schema(schema_name)
 
 class GithubAvroSchemaRetriever(AvroSchemaRetriever):
 
@@ -125,6 +145,17 @@ class SchemaNamingStrategy(ABC):
     @abstractmethod
     def get_schema_name(self, **kwargs):
         pass
+
+
+class SchemaRegistryBasedSchemaNamingStrategy(SchemaNamingStrategy):
+    def __init__(self):
+        super().__init__()
+
+    def get_schema_name(self, **kwargs):
+        if 'topic' in kwargs:
+            return f'{kwargs["topic"]}-value'
+        if 'name' in kwargs:
+            return f'{kwargs["name"]}-value'
 
 
 class SensorBasedSchemaNamingStrategy(SchemaNamingStrategy):

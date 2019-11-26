@@ -7,7 +7,7 @@ import anyconfig
 
 from commons.dynamic_import import DynamicImporter
 from commons.message_converter import MessageConverter
-from commons.schema import SchemaNamingStrategy, SensorBasedSchemaNamingStrategy
+from commons.schema import SchemaNamingStrategy, SchemaRegistryBasedSchemaNamingStrategy
 from pubsub.connection import Connection
 from pubsub.publisher import Publisher
 from sensors.sensor import Sensor
@@ -101,9 +101,6 @@ class Configuration:
     def get_converter(self):
         return self.config['converter']
 
-    def is_travis(self):
-        return self.config['travis']
-
 
 config = Configuration()
 
@@ -165,4 +162,4 @@ class ConfigHelper:
 
     @staticmethod
     def get_default_naming_strategy() -> SchemaNamingStrategy:
-        return SensorBasedSchemaNamingStrategy(prefix='', suffix='')
+        return SchemaRegistryBasedSchemaNamingStrategy()

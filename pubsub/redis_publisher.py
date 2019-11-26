@@ -29,6 +29,9 @@ class RedisPublisher(Publisher):
             # publish messages
             if msgs_converted is not None:
                 self.redis_client.publish(topic, msgs_converted)
+                logger.info(f'Published {len(msgs_converted)} messages using publisher {self.__class__.__name__}')
+            else:
+                logger.warning(f'{len(msgs)} Messages could not be published due to errors.')
         except redis.PubSubError as error:
             logger.warning(f'Could not publish message {msgs_converted} due to {error}')
             pass
@@ -36,5 +39,3 @@ class RedisPublisher(Publisher):
             logger.warning(f'Could not publish message {msgs_converted} due to {error}. Please perform necessary '
                            f'conversions first.')
             pass
-
-        logger.info(f'Published {len(msgs)} messages using publisher {self.__class__.__name__}')

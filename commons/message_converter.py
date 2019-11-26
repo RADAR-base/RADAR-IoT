@@ -67,9 +67,16 @@ class AvroValidatedJsonConverter(MessageConverter):
 
     def validate(self, msg, schema_name):
         logger.debug(f'Validating {msg} using the class {self.__class__.__name__} and schema {schema_name}')
-        return validation.validate(msg, self.schema_retriever.get_schema(sensor_name=schema_name), raise_errors=False)
+        schema = self.schema_retriever.get_schema(schema_name=schema_name)
+        if schema is None:
+            return False
+        else:
+            return validation.validate(msg, schema, raise_errors=True)
 
     def validate_all(self, msgs, schema_name):
         logger.debug(f'Validating {msgs} using the class {self.__class__.__name__} and schema {schema_name}')
         schema = self.schema_retriever.get_schema(schema_name=schema_name)
-        return validation.validate_many(msgs, schema, raise_errors=False)
+        if schema is None:
+            return False
+        else:
+            return validation.validate_many(msgs, schema, raise_errors=True)
