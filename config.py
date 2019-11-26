@@ -78,7 +78,7 @@ class Configuration:
         if rc is False or err != '':
             raise AttributeError('Invalid configuration', err)
         else:
-            self.logger.info('Successfully loaded configuration from %s' % self.FILENAME)
+            self.logger.info(f'Successfully loaded configuration from {self.FILENAME}')
 
     def get_config(self):
         return self.config
@@ -101,6 +101,9 @@ class Configuration:
     def get_converter(self):
         return self.config['converter']
 
+    def is_travis(self):
+        return self.config['travis']
+
 
 config = Configuration()
 
@@ -119,8 +122,7 @@ class ConfigHelper:
                                                    kwargs=converter_conf['schema_retriever']['args']).instance
 
                 ConfigHelper.converter = DynamicImporter(converter_conf[MODULE_KEY],
-                                                         converter_conf[CLASS_KEY], schema_retriever,
-                                                         converter_conf['validate_only']).instance
+                                                         converter_conf[CLASS_KEY], schema_retriever).instance
                 return ConfigHelper.converter
             else:
                 return None
@@ -140,8 +142,9 @@ class ConfigHelper:
     def get_publisher() -> Publisher:
         if ConfigHelper.publisher is None:
             publishing_thread_pool = ThreadPoolExecutor(max_workers=config.get_publisher()['publisher_max_threads'])
-            ConfigHelper.publisher = DynamicImporter(config.get_publisher()[MODULE_KEY], config.get_publisher()[CLASS_KEY],
-                                        ConfigHelper.get_connection(), publishing_thread_pool).instance
+            ConfigHelper.publisher = DynamicImporter(config.get_publisher()[MODULE_KEY],
+                                                     config.get_publisher()[CLASS_KEY],
+                                                     ConfigHelper.get_connection(), publishing_thread_pool).instance
             return ConfigHelper.publisher
         else:
             return ConfigHelper.publisher

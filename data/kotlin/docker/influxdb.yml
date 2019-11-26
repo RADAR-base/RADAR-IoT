@@ -1,0 +1,31 @@
+version: '2.4'
+
+networks:
+  db:
+    internal: true
+
+services:
+  influxdb:
+    image: influxdb:1.7.8
+    volumes:
+      - ./influxdb:/var/lib/influxdb
+    ports:
+      - "8086:8086"
+    networks:
+      - db
+      - default
+    environment:
+      INFLUXDB_ADMIN_USER: "root"
+      INFLUXDB_ADMIN_PASSWORD: "root"
+      INFLUXDB_USER: "radar"
+      INFLUXDB_USER_PASSWORD: "radar"
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - default
+      - db
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: "radar"

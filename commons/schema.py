@@ -83,15 +83,17 @@ class GithubAvroSchemaRetriever(AvroSchemaRetriever):
         from github3 import login, GitHub
         self.repo_owner = kwargs['kwargs']['repo_owner']
         self.repo_name = kwargs['kwargs']['repo_name']
-        self.git_user = kwargs['kwargs']['git_user']
-        self.git_password = kwargs['kwargs']['git_password']
         self.branch = kwargs['kwargs']['branch']
         self.base_path = kwargs['kwargs']['basepath']
         self.extension = kwargs['kwargs']['extension']
 
-        if self.git_user is not None and self.git_password is not None:
+        try:
+            self.git_user = kwargs['kwargs']['git_user']
+            self.git_password = kwargs['kwargs']['git_password']
             self.git = login(self.git_user, self.git_password)
-        else:
+        except KeyError:
+            self.git_user = None
+            self.git_password = None
             self.git = GitHub()
 
         super().__init__(**kwargs)

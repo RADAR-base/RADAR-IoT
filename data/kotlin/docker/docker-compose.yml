@@ -1,0 +1,205 @@
+---
+version: '2.4'
+
+networks:
+  kafka:
+    internal: true
+
+services:
+  #---------------------------------------------------------------------------#
+  # Zookeeper Cluster                                                         #
+  #---------------------------------------------------------------------------#
+  zookeeper-1:
+    image: confluentinc/cp-zookeeper:5.1.0
+    networks:
+      - kafka
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 1000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888
+
+  zookeeper-2:
+    image: confluentinc/cp-zookeeper:5.1.0
+    networks:
+      - kafka
+    environment:
+      ZOOKEEPER_SERVER_ID: 2
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 1000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888
+
+  zookeeper-3:
+    image: confluentinc/cp-zookeeper:5.1.0
+    networks:
+      - kafka
+    environment:
+      ZOOKEEPER_SERVER_ID: 3
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 1000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888
+
+  #---------------------------------------------------------------------------#
+  # Kafka Cluster                                                             #
+  #---------------------------------------------------------------------------#
+  kafka-1:
+    image: confluentinc/cp-kafka:5.1.0
+    networks:
+      - kafka
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_GROUP_MIN_SESSION_TIMEOUT_MS: 5000
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_LOG4J_LOGGERS: kafka.producer.async.DefaultEventHandler=INFO,kafka.controller=INFO,state.change.logger=INFO
+      KAFKA_COMPRESSION_TYPE: lz4
+      KAFKA_INTER_BROKER_PROTOCOL_VERSION: "2.0"
+      KAFKA_LOG_MESSAGE_FORMAT_VERSION: "2.0"
+      KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE: "false"
+
+  kafka-2:
+    image: confluentinc/cp-kafka:5.1.0
+    networks:
+      - kafka
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_GROUP_MIN_SESSION_TIMEOUT_MS: 5000
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_LOG4J_LOGGERS: kafka.producer.async.DefaultEventHandler=INFO,kafka.controller=INFO,state.change.logger=INFO
+      KAFKA_COMPRESSION_TYPE: lz4
+      KAFKA_INTER_BROKER_PROTOCOL_VERSION: "2.0"
+      KAFKA_LOG_MESSAGE_FORMAT_VERSION: "2.0"
+      KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE: "false"
+
+  kafka-3:
+    image: confluentinc/cp-kafka:5.1.0
+    networks:
+      - kafka
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_GROUP_MIN_SESSION_TIMEOUT_MS: 5000
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_LOG4J_LOGGERS: kafka.producer.async.DefaultEventHandler=INFO,kafka.controller=INFO,state.change.logger=INFO
+      KAFKA_COMPRESSION_TYPE: lz4
+      KAFKA_INTER_BROKER_PROTOCOL_VERSION: "2.0"
+      KAFKA_LOG_MESSAGE_FORMAT_VERSION: "2.0"
+      KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE: "false"
+
+  #---------------------------------------------------------------------------#
+  # Schema Registry                                                           #
+  #---------------------------------------------------------------------------#
+  schema-registry-1:
+    image: confluentinc/cp-schema-registry:5.1.0
+    networks:
+      - kafka
+      - default
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    restart: always
+    ports:
+      - "8084:8081"
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry-1
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_AVRO_COMPATIBILITY_LEVEL: none
+      KAFKA_GROUP_MIN_SESSION_TIMEOUT_MS: 5000
+
+  #---------------------------------------------------------------------------#
+  # REST proxy                                                                #
+  #---------------------------------------------------------------------------#
+  rest-proxy-1:
+    image: confluentinc/cp-kafka-rest:5.1.0
+    networks:
+      - kafka
+      - default
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+      - kafka-1
+      - kafka-2
+      - kafka-3
+      - schema-registry-1
+    ports:
+      - "8082:8082"
+    environment:
+      KAFKA_REST_ZOOKEEPER_CONNECT: zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181
+      KAFKA_REST_LISTENERS: http://0.0.0.0:8082
+      KAFKA_REST_SCHEMA_REGISTRY_URL: http://schema-registry-1:8081
+      KAFKA_REST_HOST_NAME: rest-proxy-1
+      KAFKA_GROUP_MIN_SESSION_TIMEOUT_MS: 5000
+      KAFKA_AUTO_COMMIT_INTERVAL_MS: 300
+      KAFKA_REST_COMPRESSION_TYPE: lz4
+
+  #---------------------------------------------------------------------------#
+  # Management Portal                                                         #
+  #---------------------------------------------------------------------------#
+  managementportal:
+    image: radarbase/management-portal:0.5.6
+    networks:
+      - kafka
+      - default
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SERVER_PORT: 8081
+      MANAGEMENTPORTAL_FRONTEND_CLIENT_SECRET: ""
+      MANAGEMENTPORTAL_COMMON_BASE_URL: http://localhost:8081/
+      MANAGEMENTPORTAL_COMMON_MANAGEMENT_PORTAL_BASE_URL: http://localhost:8081/
+      MANAGEMENTPORTAL_OAUTH_CLIENTS_FILE: /mp-includes/config/oauth_client_details.csv
+      MANAGEMENTPORTAL_CATALOGUE_SERVER_ENABLE_AUTO_IMPORT: 'false'
+      JAVA_OPTS: -Xmx256m  # maximum heap size for the JVM running ManagementPortal, increase this as necessary
+    volumes:
+      - ./etc/:/mp-includes/
+
+
+  #---------------------------------------------------------------------------#
+  # RADAR Gateway                                                             #
+  #---------------------------------------------------------------------------#
+  gateway:
+    image: radarbase/radar-gateway:0.3.9
+    networks:
+      - kafka
+      - default
+    depends_on:
+      - rest-proxy-1
+    volumes:
+      - ./etc/gateway:/etc/radar-gateway
+    ports:
+      - "8090:8090"
+    command: ["radar-gateway", "/etc/radar-gateway/gateway.yml"]
+    environment:
+      RADAR_IS_CONFIG_LOCATION: /etc/radar-gateway/radar-is.yml
