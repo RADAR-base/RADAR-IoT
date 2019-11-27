@@ -3,6 +3,8 @@ import queue
 from abc import ABC, abstractmethod
 from datetime import datetime
 
+from commons.data import Response
+
 logger = logging.getLogger('root')
 
 
@@ -32,11 +34,12 @@ class Sensor(ABC):
             self.flush()
         if self.queue.qsize() >= self.flush_size:
             self.flush()
-        data = self.get_data()
+        data = self.get_measurement()
         self.queue.put(data)
         logger.debug(f'Queue Size for {self.__class__.__name__} is {self.queue.qsize()}')
 
     def flush(self) -> None:
+        logger.debug('Flushing messages now...')
         msgs = list()
         if self.flush_size <= self.queue.qsize():
             max_range = self.flush_size
@@ -46,11 +49,12 @@ class Sensor(ABC):
             msgs.append(self.queue.get())
         self._publish(msgs)
         self._last_flush = datetime.now().timestamp()
+        logger.debug(f'Successfully flushed {len(msgs)} messages.')
 
     # Private as it's working is internal
     def _publish(self, msgs) -> None:
         self.publisher.publish(msgs, self.topic, self.schema_name)
 
     @abstractmethod
-    def get_data(self):
+    def get_measurement(self) -> Response:
         pass
