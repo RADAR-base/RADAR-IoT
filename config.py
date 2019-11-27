@@ -12,6 +12,7 @@ from pubsub.connection import Connection
 from pubsub.publisher import Publisher
 from sensors.sensor import Sensor
 
+# Keys in the configuration
 MODULE_KEY = 'module'
 CLASS_KEY = 'class'
 TOPIC_KEY = 'publishing_topic'
@@ -23,6 +24,7 @@ ROOT_LOGGER_LEVEL_KEY = 'root_logger_level'
 CONVERTER_KEY = 'converter'
 SCHEDULER_MAX_THREADS_KEY = 'scheduler_max_threads'
 EXPOSE_TOPIC_ENDPOINT_KEY = 'expose_topic_endpoint'
+CONNECTION_KEY = 'connection'
 
 # Default values
 CONNECTION = {
@@ -37,7 +39,7 @@ CONNECTION = {
 PUBLISHER = {
     MODULE_KEY: 'pubsub.redis_publisher',
     CLASS_KEY: 'RedisPublisher',
-    'connection': CONNECTION,
+    CONNECTION_KEY: CONNECTION,
     'publisher_max_threads': 5
 }
 
@@ -116,7 +118,7 @@ class ConfigHelper:
             if converter_conf is not None:
                 schema_retriever = DynamicImporter(converter_conf['schema_retriever'][MODULE_KEY],
                                                    converter_conf['schema_retriever'][CLASS_KEY],
-                                                   kwargs=converter_conf['schema_retriever']['args']).instance
+                                                   **converter_conf['schema_retriever']['args']).instance
 
                 ConfigHelper.converter = DynamicImporter(converter_conf[MODULE_KEY],
                                                          converter_conf[CLASS_KEY], schema_retriever).instance

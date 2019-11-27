@@ -256,16 +256,17 @@ Additionally, you can also extend other methods of sensor used for polling, flus
 For already available sensor implementations, take a look at various sensors in the [sensors](/sensors) package.
 
 ### Extending the Publisher module
-TODO
--
+This can be extended by extending the `Publisher` abstract class in [pubsub.publisher](pubsub/publisher.py) module.
+You will need to provide implementation of the `_publish` method which will handle all the logic of publishing the messages. Ideally these should also convert the messages before publishing. 
+Take a look at `RedisPublisher` in [pubsub.redis_publisher](pubsub/redis_publisher.py) module for an example implementation.
 
 ### Extending the Message Converter module
-TODO
--
+Just extend the `MessageConverter` abstract class in [commons.message_converter](commons/message_converter.py) module.
+You will need to provide implementation for `convert` (for a single message) and `convert_all` (for a list of messages) methods.
+Take a look at `AvroValidatedJsonConverter` in the same module for an example implementation.
 
 ### Extending the Data Upload module
-TODO
--
+Please read the data uploader module [documentation](/data/kotlin/data-uploader). This is currently provided in Kotlin programming language but can be created in any language desired (which has clients for subscribing to the pub/sub system).
 
 
 ## Additional Info
@@ -303,4 +304,11 @@ There are 3 types of schema retrievers provided which are located in the [schema
     Like the file retriever, this will also walk down the `basepath` in the repository and retrieve schemas with the `extension` provided. 
     If the repository is public there is no requirement to specify the `git_user` and `git_password` but it is still recommended as it increases the Github Api limits.
     
-* **SchemaRegistrySchemaRetriever**: TODO
+* **SchemaRegistrySchemaRetriever**: This will retrieve schemas from the Confluent Schema Registry. It can be configured as follows. The `schema_registry_url` is a required argument.
+    ```yaml
+          schema_retriever:
+            module: 'commons.schema'
+            class: 'SchemaRegistrySchemaRetriever'
+            args:
+              schema_registry_url: 'https://radar-cns-platform.rosalind.kcl.ac.uk/schema'
+    ```

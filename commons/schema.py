@@ -45,8 +45,8 @@ class AvroSchemaRetriever(SchemaRetriever):
 
 class FileAvroSchemaRetriever(AvroSchemaRetriever):
     def __init__(self, **kwargs):
-        self.filepath = kwargs['kwargs']['filepath']
-        self.extension = kwargs['kwargs']['extension']
+        self.filepath = kwargs.get('filepath')
+        self.extension = kwargs.get('extension')
         super().__init__(**kwargs)
 
     def get_all_schemas(self, **kwargs) -> ExpiringDict:
@@ -72,7 +72,7 @@ class FileAvroSchemaRetriever(AvroSchemaRetriever):
 class SchemaRegistrySchemaRetriever(AvroSchemaRetriever):
     def __init__(self, **kwargs):
         try:
-            self.schema_registry_url = kwargs['kwargs']['schema_registry_url']
+            self.schema_registry_url = kwargs.get('schema_registry_url')
         except KeyError:
             raise AttributeError('schema_registry_url needed to use the this schema retriever. Please configure it.')
         super().__init__(**kwargs)
@@ -95,21 +95,23 @@ class SchemaRegistrySchemaRetriever(AvroSchemaRetriever):
             return parse_schema(
                 loads(req.get(f'{self.schema_registry_url}/subjects/{schema_name}/versions/latest').json()['schema']))
         except:
+            # If cannot get directly from schema registry, try getting it from the cache. The cache is updated daily.
             return super().get_schema(schema_name)
+
 
 class GithubAvroSchemaRetriever(AvroSchemaRetriever):
 
     def __init__(self, **kwargs):
         from github3 import login, GitHub
-        self.repo_owner = kwargs['kwargs']['repo_owner']
-        self.repo_name = kwargs['kwargs']['repo_name']
-        self.branch = kwargs['kwargs']['branch']
-        self.base_path = kwargs['kwargs']['basepath']
-        self.extension = kwargs['kwargs']['extension']
+        self.repo_owner = kwargs.get('repo_owner')
+        self.repo_name = kwargs.get('repo_name')
+        self.branch = kwargs.get('branch')
+        self.base_path = kwargs.get('basepath')
+        self.extension = kwargs.get('extension')
 
         try:
-            self.git_user = kwargs['kwargs']['git_user']
-            self.git_password = kwargs['kwargs']['git_password']
+            self.git_user = kwargs.get('git_user')
+            self.git_password = kwargs.get('git_password')
             self.git = login(self.git_user, self.git_password)
         except KeyError:
             self.git_user = None
@@ -152,10 +154,10 @@ class SchemaRegistryBasedSchemaNamingStrategy(SchemaNamingStrategy):
         super().__init__()
 
     def get_schema_name(self, **kwargs):
-        if 'topic' in kwargs:
-            return f'{kwargs["topic"]}-value'
-        if 'name' in kwargs:
-            return f'{kwargs["name"]}-value'
+        if 'topic' in kwargs.keys():
+            return f'{kwargs.get("topic")}-value'
+        if 'name' in kwargs.keys():
+            return f'{kwargs.get("name")}-value'
 
 
 class SensorBasedSchemaNamingStrategy(SchemaNamingStrategy):
@@ -165,8 +167,8 @@ class SensorBasedSchemaNamingStrategy(SchemaNamingStrategy):
         super().__init__()
 
     def get_schema_name(self, **kwargs):
-        if 'name' in kwargs:
-            return f'{self.prefix}{kwargs["name"]}{self.suffix}'
+        if 'name' in kwargs.keys():
+            return f'{self.prefix}{kwargs.get("name")}{self.suffix}'
 
-        if 'topic' in kwargs:
-            return f'{self.prefix}{kwargs["topic"]}{self.suffix}'
+        if 'topic' in kwargs.keys():
+            return f'{self.prefix}{kwargs.get("topic")}{self.suffix}'
