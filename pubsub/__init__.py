@@ -41,6 +41,7 @@ class Publisher(ABC):
     def __init__(self, connection: Connection, publisher_thread_pool: ThreadPoolExecutor):
         self.connection = connection
         self.publisher_thread_pool = publisher_thread_pool
+        self.topic_prefix = 'data-array/'
         if connection.is_connected():
             logger.debug(f'Using the connection {connection.__class__.__name__} for publishing.')
         else:

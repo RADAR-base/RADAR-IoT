@@ -119,7 +119,7 @@ Each sensor is configured as follows -
         flush_after_s: 1000
     ```
     Currently, implementations for the following sensors are provided -
-    - [Google Coral Environment Board Sensors](https://coral.withgoogle.com/products/environmental/): In the modules - [coral_enviro_humidity](sensors/coral_enviro_humidity.py), [coral_enviro_light](coral_enviro_light.py), [coral_enviro_temperature](coral_enviro_temperature.py)
+    - [Google Coral Environment Board Sensors](https://coral.withgoogle.com/products/environmental/): In the module - [coral_enviro](sensors/coral_enviro.py)
     
     By **Default** , No Sensors are added to the Configuration. This is because it is hardware dependent and thus we cannot have a default sensor config. If sensor config is not provided, the program will fail with an exception.
 

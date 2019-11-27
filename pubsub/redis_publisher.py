@@ -43,9 +43,10 @@ class RedisPublisher(Publisher):
         try:
             # publish messages
             if msgs_converted is not None:
-                num_subscribers = self.redis_client.publish(topic, msgs_converted)
+                final_topic = self.topic_prefix + topic
+                num_subscribers = self.redis_client.publish(final_topic, msgs_converted)
                 logger.info(f'Published {len(msgs_)} messages using publisher {self.__class__.__name__}'
-                            f'. It was delivered to {num_subscribers} subscribers')
+                            f'on channel {final_topic}. It was delivered to {num_subscribers} subscribers')
             else:
                 logger.warning(f'{len(msgs_)} Messages could not be published due to errors.')
         except redis.PubSubError as error:
