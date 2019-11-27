@@ -27,7 +27,7 @@ class RedisPublisher(Publisher):
         msgs_ = list()
         for msg in msgs:
             if isinstance(msg, Response):
-                msgs_.append(msg)
+                msgs_.append(msg.response)
             else:
                 raise TypeError(f'Cannot publish the messages as they must be of {Response.__class__.__name__} type.')
 
@@ -44,7 +44,7 @@ class RedisPublisher(Publisher):
             # publish messages
             if msgs_converted is not None:
                 num_subscribers = self.redis_client.publish(topic, msgs_converted)
-                logger.info(f'Published {len(msgs_converted)} messages using publisher {self.__class__.__name__}'
+                logger.info(f'Published {len(msgs_)} messages using publisher {self.__class__.__name__}'
                             f'. It was delivered to {num_subscribers} subscribers')
             else:
                 logger.warning(f'{len(msgs_)} Messages could not be published due to errors.')

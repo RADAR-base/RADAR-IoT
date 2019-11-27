@@ -234,7 +234,7 @@ For example, following is implementation of a test sensor. You just need to spec
 ```python
 import logging
 
-from sensors.sensor import Sensor
+from sensors import Sensor
 
 logger = logging.getLogger('root')
 
@@ -251,7 +251,7 @@ class YourTestSensor(Sensor):
 Remember to pass all the required constructor values to the super class.
 Also notice the use of the root logger which was discussed earlier in the [configuration](#configuration) section.
 
-Additionally, you can also extend other methods of sensor used for polling, flushing, etc. These can be found in the super class [Sensor](sensors/sensor.py)
+Additionally, you can also extend other methods of sensor used for polling, flushing, etc. These can be found in the super class [Sensor](sensors/__init__.py)
 
 For already available sensor implementations, take a look at various sensors in the [sensors](/sensors) package.
 

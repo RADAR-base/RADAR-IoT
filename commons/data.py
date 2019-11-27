@@ -1,10 +1,16 @@
+from enum import IntEnum
 from typing import List
+
+
+class ErrorCode(IntEnum):
+    UNKNOWN = 0,
+    STATUS_OFF = 1
 
 
 class Error(object):
     """Object representing an error. This must be used across the system for reporting any errors."""
 
-    def __init__(self, type: str, code: int, reason: str, trace: str):
+    def __init__(self, type: str, code: ErrorCode, reason: str, trace: str):
         self.type = type
         self.code = code
         self.reason = reason

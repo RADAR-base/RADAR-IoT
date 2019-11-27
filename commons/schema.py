@@ -47,7 +47,7 @@ class FileAvroSchemaRetriever(AvroSchemaRetriever):
     def __init__(self, **kwargs):
         self.filepath = kwargs.get('filepath')
         self.extension = kwargs.get('extension')
-        super().__init__(**kwargs)
+        super().__init__()
 
     def get_all_schemas(self, **kwargs) -> ExpiringDict:
         import os
@@ -75,7 +75,7 @@ class SchemaRegistrySchemaRetriever(AvroSchemaRetriever):
             self.schema_registry_url = kwargs.get('schema_registry_url')
         except KeyError:
             raise AttributeError('schema_registry_url needed to use the this schema retriever. Please configure it.')
-        super().__init__(**kwargs)
+        super().__init__()
 
     def get_all_schemas(self, **kwargs) -> ExpiringDict:
         schemas = ExpiringDict(max_len=200, max_age_seconds=86400)
@@ -109,16 +109,16 @@ class GithubAvroSchemaRetriever(AvroSchemaRetriever):
         self.base_path = kwargs.get('basepath')
         self.extension = kwargs.get('extension')
 
-        try:
+        if 'git_user' in kwargs and 'git_password' in kwargs:
             self.git_user = kwargs.get('git_user')
             self.git_password = kwargs.get('git_password')
             self.git = login(self.git_user, self.git_password)
-        except KeyError:
+        else:
             self.git_user = None
             self.git_password = None
             self.git = GitHub()
 
-        super().__init__(**kwargs)
+        super().__init__()
 
     def get_all_schemas(self, **kwargs) -> ExpiringDict:
         repo = self.git.repository(self.repo_owner, self.repo_name)

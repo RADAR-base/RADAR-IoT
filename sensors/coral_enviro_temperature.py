@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 
 from commons.data import Response
-from sensors.sensor import Sensor
+from sensors import Sensor
 
 logger = logging.getLogger('root')
 

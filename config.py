@@ -7,10 +7,10 @@ import anyconfig
 
 from commons.dynamic_import import DynamicImporter
 from commons.message_converter import MessageConverter
-from commons.schema import SchemaNamingStrategy, SchemaRegistryBasedSchemaNamingStrategy
+from commons.schema import SchemaNamingStrategy, SensorBasedSchemaNamingStrategy
 from pubsub.connection import Connection
 from pubsub.publisher import Publisher
-from sensors.sensor import Sensor
+from sensors import Sensor
 
 # Keys in the configuration
 MODULE_KEY = 'module'
@@ -164,4 +164,4 @@ class ConfigHelper:
 
     @staticmethod
     def get_default_naming_strategy() -> SchemaNamingStrategy:
-        return SchemaRegistryBasedSchemaNamingStrategy()
+        return SensorBasedSchemaNamingStrategy()
