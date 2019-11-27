@@ -7,7 +7,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from commons.message_converter import MessageConverter
 from config import Configuration, ConfigHelper
-from pubsub.publisher import Publisher
+from pubsub import Publisher
 from sensors import Sensor
 
 logger = logging.getLogger('root')

@@ -8,8 +8,8 @@ import anyconfig
 from commons.dynamic_import import DynamicImporter
 from commons.message_converter import MessageConverter
 from commons.schema import SchemaNamingStrategy, SensorBasedSchemaNamingStrategy
-from pubsub.connection import Connection
-from pubsub.publisher import Publisher
+from pubsub import Connection
+from pubsub import Publisher
 from sensors import Sensor
 
 # Keys in the configuration

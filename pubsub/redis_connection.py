@@ -2,7 +2,7 @@ import logging
 
 import redis
 
-from pubsub.connection import Connection
+from pubsub import Connection
 
 logger = logging.getLogger('root')
 

@@ -7,7 +7,7 @@ import redis
 from commons.data import Response
 from commons.message_converter import MessageConverter
 from config import ConfigHelper
-from pubsub.publisher import Publisher
+from pubsub import Publisher
 from pubsub.redis_connection import RedisConnection
 
 logger = logging.getLogger('root')

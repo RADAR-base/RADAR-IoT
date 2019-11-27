@@ -256,7 +256,7 @@ Additionally, you can also extend other methods of sensor used for polling, flus
 For already available sensor implementations, take a look at various sensors in the [sensors](/sensors) package.
 
 ### Extending the Publisher module
-This can be extended by extending the `Publisher` abstract class in [pubsub.publisher](pubsub/publisher.py) module.
+This can be extended by extending the `Publisher` abstract class in [pubsub.publisher](pubsub/__init__.py) module.
 You will need to provide implementation of the `_publish` method which will handle all the logic of publishing the messages. Ideally these should also convert the messages before publishing. 
 Take a look at `RedisPublisher` in [pubsub.redis_publisher](pubsub/redis_publisher.py) module for an example implementation.
 
