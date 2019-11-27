@@ -14,7 +14,7 @@ radarConfig:
 # then the data from the sensor will not be forwarded to that consumer for processing
 sensorConfigs:
   - sensorName: "coral-enviro-humidity"
-    inputTopic: "coral-enviro-humidity"
+    inputTopic: "data-stream/sensors/coral-enviro-humidity"
     outputTopic: "coral_enviro_humidity"
     converterClasses:
       - consumerName: "rest_proxy"
@@ -22,13 +22,13 @@ sensorConfigs:
       - consumerName: "influx_db"
         converterClass: "org.radarbase.iot.converter.influxdb.coralenviro.CoralEnviroHumidityInfluxDbConverter"
   - sensorName: "coral-enviro-temperature"
-    inputTopic: "coral-enviro-temperature"
+    inputTopic: "data-stream/sensors/coral-enviro-temperature"
     outputTopic: "coral_enviro_temperature"
     converterClasses:
       - consumerName: "rest_proxy"
         converterClass: "org.radarbase.iot.converter.avro.coralenviro.CoralEnviroTemperatureConverter"
   - sensorName: "mock"
-    inputTopic: "mock"
+    inputTopic: "data-stream/sensors/mock"
     outputTopic: "mock"
     converterClasses:
       - consumerName: "rest_proxy"
