@@ -3,14 +3,19 @@ import queue
 from abc import ABC, abstractmethod
 from datetime import datetime
 
-from commons.data import Response, Error, ErrorCode
+from commons.data import Response, IoTError, ErrorCode
 
 logger = logging.getLogger('root')
 
 
 class Sensor(ABC):
-    _FLUSH_OFFSET_S = 200
-    _last_flush = datetime.now().timestamp()
+    """The base class for all Sensor implementations. The abstract nature allows for specifying sensor specific impl.
+    This is also responsible for the flushing logic and passing the data to the data processor.
+
+    The `get_measurement` method needs to be overridden by the sub-classes and should return a :class: Response object.
+    This class also allows for adding a list errors (:class: Error) and hence any errors while fetching data from
+    the sensor needs to be caught properly and then wrapped in the Response object.
+    """
 
     def __init__(self, name, topic, poll_freq_ms, flush_size=100, flush_after_s=2000):
         self.name = name
@@ -20,10 +25,12 @@ class Sensor(ABC):
         if flush_after_s > flush_size * poll_freq_ms / 1000:
             self.flush_after_s = flush_after_s
         else:
-            self.flush_after_s = self._FLUSH_OFFSET_S + (flush_size * poll_freq_ms / 1000)
+            _FLUSH_OFFSET_S = 200
+            self.flush_after_s = _FLUSH_OFFSET_S + (flush_size * poll_freq_ms / 1000)
         from config import Factory
         self.data_processor = Factory.get_data_processor()
         self.queue = queue.Queue(int(flush_size + flush_size / 2))
+        self._last_flush = datetime.now().timestamp()
         super().__init__()
         logger.info(f'Successfully initialised Sensor of type : {self.__class__.__name__}')
 
@@ -51,7 +58,7 @@ class Sensor(ABC):
 
     # Private as it's working is internal
     def _publish(self, msgs) -> None:
-        self.data_processor.process_data(msgs, self.topic, self.name)
+        self.data_processor.process_data(msgs, topic=self.topic, name=self.name)
 
     @abstractmethod
     def get_measurement(self) -> Response:
@@ -101,7 +108,7 @@ class GPIOSensor(Sensor, ABC):
             try:
                 res[key] = self.read_pin(value)
             except Exception as exc:
-                errs.append(Error(type=exc.__class__.__name__, code=ErrorCode.UNKNOWN, reason=str(exc.__cause__),
-                                  trace=str(exc.__traceback__)))
+                errs.append(IoTError(type=exc.__class__.__name__, code=ErrorCode.UNKNOWN, reason=str(exc.__cause__),
+                                     trace=str(exc.__traceback__)))
                 pass
         return Response(response=res, errors=errs)

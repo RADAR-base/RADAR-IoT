@@ -1,7 +1,7 @@
 import random
 from datetime import datetime
 
-from commons.data import Response, Error, ErrorCode
+from commons.data import Response, IoTError, ErrorCode
 from sensors import Sensor
 
 
@@ -15,7 +15,7 @@ class MockSensor(Sensor):
         self.global_counter += 1
         if self.global_counter % 10 == 0:
             return Response(response=None, errors=[
-                Error('MockError', ErrorCode.STATUS_OFF, 'The MockSensor mocks an error every 10 iterations',
+                IoTError('MockError', ErrorCode.STATUS_OFF, 'The MockSensor mocks an error every 10 iterations',
                       'blah->nooooo->save me->dead')])
         else:
             return Response({'time': datetime.now().timestamp(), 'value': random.random() * 1000}, errors=None)

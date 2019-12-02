@@ -5,7 +5,7 @@ from typing import List
 
 import anyconfig
 
-from commons.data import SensorDataProcessor, ErrorHandler
+from commons.data import DataProcessor, ErrorHandler
 from commons.dynamic_import import DynamicImporter
 from commons.message_converter import MessageConverter
 from commons.schema import SchemaNamingStrategy, SensorBasedSchemaNamingStrategy
@@ -140,11 +140,11 @@ class Factory:
                                config.get_publisher()['connection']['password']).instance
 
     @staticmethod
-    def get_data_processor() -> SensorDataProcessor:
+    def get_data_processor() -> DataProcessor:
         if Factory.data_processor is None:
-            Factory.data_processor = SensorDataProcessor(Factory.get_converter(), Factory.get_publisher(),
-                                                         Factory.get_default_naming_strategy(),
-                                                         Factory.get_default_error_handler())
+            Factory.data_processor = DataProcessor(Factory.get_converter(), Factory.get_publisher(),
+                                                   Factory.get_default_naming_strategy(),
+                                                   Factory.get_default_error_handler())
             return Factory.data_processor
         else:
             return Factory.data_processor
