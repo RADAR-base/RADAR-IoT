@@ -1,9 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
-from typing import List
-
-from commons.data import Response
 
 logger = logging.getLogger('root')
 
@@ -48,11 +45,11 @@ class Publisher(ABC):
             raise ConnectionError(f'Connection failed: {connection.__class__.__name__}')
 
     @abstractmethod
-    def _publish(self, msgs: List[Response], topic: str, schema_name=None) -> None:
+    def _publish(self, msgs, topic: str) -> None:
         pass
 
-    def publish(self, msgs: List[Response], topic: str, schema_name=None):
-        self.publisher_thread_pool.submit(self._publish, msgs, topic, schema_name)
+    def publish(self, msgs, topic: str):
+        self.publisher_thread_pool.submit(self._publish, msgs, topic)
 
 
 class Subscriber(ABC):

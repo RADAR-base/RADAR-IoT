@@ -6,7 +6,7 @@ from apscheduler.executors.pool import ProcessPoolExecutor
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from commons.message_converter import MessageConverter
-from config import Configuration, ConfigHelper
+from config import Configuration, Factory
 from pubsub import Publisher
 from sensors import Sensor
 
@@ -20,9 +20,9 @@ class SensorHandler:
     publishing_thread_pool: ThreadPoolExecutor = None
 
     def __init__(self, config: Configuration):
-        self.publisher: Publisher = ConfigHelper.get_publisher()
-        self.converter: MessageConverter = ConfigHelper.get_converter()
-        self.sensors = ConfigHelper.get_sensors()
+        self.publisher: Publisher = Factory.get_publisher()
+        self.converter: MessageConverter = Factory.get_converter()
+        self.sensors = Factory.get_sensors()
 
         # We don't use ProcessPool right now for the jobs but may include in the future for compute intensive tasks.
         executors = {

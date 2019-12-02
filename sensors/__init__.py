@@ -21,11 +21,9 @@ class Sensor(ABC):
             self.flush_after_s = flush_after_s
         else:
             self.flush_after_s = self._FLUSH_OFFSET_S + (flush_size * poll_freq_ms / 1000)
-        from config import ConfigHelper
-        self.publisher = ConfigHelper.get_publisher()
+        from config import Factory
+        self.data_processor = Factory.get_data_processor()
         self.queue = queue.Queue(int(flush_size + flush_size / 2))
-        self.naming_strategy = ConfigHelper.get_default_naming_strategy()
-        self.schema_name = self.naming_strategy.get_schema_name(name=self.name)
         super().__init__()
         logger.info(f'Successfully initialised Sensor of type : {self.__class__.__name__}')
 
@@ -53,14 +51,14 @@ class Sensor(ABC):
 
     # Private as it's working is internal
     def _publish(self, msgs) -> None:
-        self.publisher.publish(msgs, self.topic, self.schema_name)
+        self.data_processor.process_data(msgs, self.topic, self.name)
 
     @abstractmethod
     def get_measurement(self) -> Response:
         pass
 
 
-class GPIOSensorPlugin(Sensor, ABC):
+class GPIOSensor(Sensor, ABC):
     """To be extended by any sensor that is supposed to use General purpose I/O (GPIO).
     This will allow interfacing in both directions.
 
@@ -81,9 +79,9 @@ class GPIOSensorPlugin(Sensor, ABC):
     A very basic implementation is provided here but in most cases this will need to be overridden.
     """
 
-    def __init__(self, pins: dict, name, topic, poll_freq_ms):
+    def __init__(self, pins: dict, name, topic, poll_freq_ms, flush_size, flush_after_s):
         self.pins = pins
-        super().__init__(name, topic, poll_freq_ms)
+        super().__init__(name, topic, poll_freq_ms, flush_size, flush_after_s)
 
     def get_pins(self) -> dict:
         return self.pins

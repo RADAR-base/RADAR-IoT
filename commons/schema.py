@@ -21,8 +21,8 @@ class AvroSchemaRetriever(SchemaRetriever):
 
     def __init__(self, **kwargs):
         self.cached_schemas = self.get_all_schemas()
-        from config import ConfigHelper
-        self.schema_naming_strategy = ConfigHelper.get_default_naming_strategy()
+        from config import Factory
+        self.schema_naming_strategy = Factory.get_default_naming_strategy()
         logger.debug(f'Using the schemas: {self.cached_schemas.items()}')
         super().__init__()
 
