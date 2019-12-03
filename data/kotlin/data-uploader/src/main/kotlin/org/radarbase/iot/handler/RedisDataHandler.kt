@@ -12,7 +12,6 @@ import org.radarbase.iot.pubsub.connection.RedisConnection
 import org.radarbase.iot.pubsub.connection.RedisConnectionProperties
 import org.radarbase.iot.pubsub.subscriber.RedisSubscriber
 import org.slf4j.LoggerFactory
-import redis.clients.jedis.JedisPubSub
 
 /**
  * Main Data handler class for initialising the [DataConsumer]s and subscribing to various
@@ -20,19 +19,21 @@ import redis.clients.jedis.JedisPubSub
  * It then listens for any new events (data from pub/sub) and forwards it to all the
  * [DataConsumer]s.
  */
-class RedisDataHandler : JedisPubSub(),
-    Handler {
+class RedisDataHandler : Handler {
 
     private var redisProperties: RedisConnectionProperties =
         CONFIGURATION.redisProperties ?: RedisConnectionProperties()
 
     private lateinit var consumerAndConverterManager: ConsumerAndConverterManager
 
+    private lateinit var redisPubSub: RedisPubSub
+
     @Throws(ConfigurationException::class)
     override fun initialise() {
         logger.info("Configuration is : $CONFIGURATION")
 
         consumerAndConverterManager = ConsumerAndConverterManager(CONFIGURATION)
+        redisPubSub = RedisPubSub(consumerAndConverterManager)
 
         Thread.setDefaultUncaughtExceptionHandler(
             LogAndContinueExceptionHandler(
@@ -48,7 +49,7 @@ class RedisDataHandler : JedisPubSub(),
             GlobalScope.launch(exceptionHandler) {
                 subscriberFactory.getInstance(redisProperties).subscribe(
                     sensorConf.inputTopic,
-                    this@RedisDataHandler
+                    redisPubSub
                 )
                 logger.info("Subscribed to ${sensorConf.inputTopic}")
             }
@@ -59,48 +60,13 @@ class RedisDataHandler : JedisPubSub(),
         logger.info("Stopping ${this::class.java.name}...")
         try {
             consumerAndConverterManager.getAllChannels().forEach {
-                this.unsubscribe(it)
+                redisPubSub.unsubscribe(it)
             }
             consumerAndConverterManager.dataConsumerNameMap.values.forEach { it.close() }
             logger.info("Gracefully stopped ${this::class.java.name}")
         } catch (exc: UninitializedPropertyAccessException) {
             logger.info("The ${this::class.java.name} was not initialised properly.")
         }
-    }
-
-    override fun onMessage(channel: String?, message: String?) {
-        super.onMessage(channel, message)
-        logger.debug("Received message: [${message}] from channel: [${channel}]")
-        // Forward the message to all the dataConsumers by launching a coroutine
-        GlobalScope.launch(exceptionHandler) {
-            consumerAndConverterManager.dataConsumerNameMap.forEach { (consumerName, consumer) ->
-                try {
-                    consumer.handleData(
-                        message, consumerAndConverterManager
-                            .converterForChannelAndConsumer(channel!!, consumerName)
-                    )
-                } catch (exc: NoSuchElementException) {
-                    // No op as this consumer may not be registered on this channel and hence no
-                    // converter found.
-                }
-            }
-        }
-    }
-
-    override fun onSubscribe(channel: String?, subscribedChannels: Int) {
-        super.onSubscribe(channel, subscribedChannels)
-        logger.info(
-            """Subscribed to $channel channel.
-            | Now total subscriptions are $subscribedChannels""".trimMargin()
-        )
-    }
-
-    override fun onUnsubscribe(channel: String?, subscribedChannels: Int) {
-        super.onUnsubscribe(channel, subscribedChannels)
-        logger.info(
-            """Unsubscribed from $channel channel.
-            | Now total subscriptions are $subscribedChannels""".trimMargin()
-        )
     }
 
     companion object {
@@ -110,7 +76,7 @@ class RedisDataHandler : JedisPubSub(),
                 RedisSubscriber(RedisConnection(it))
             }
 
-        private val exceptionHandler = CoroutineExceptionHandler { _, exception ->
+        val exceptionHandler = CoroutineExceptionHandler { _, exception ->
             logger.error("Caught $exception: ${exception.message}", exception)
         }
 
