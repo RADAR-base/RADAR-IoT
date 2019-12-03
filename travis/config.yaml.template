@@ -2,7 +2,7 @@ sensors:
   - name: "mock_sensor"
     module: "test.mock"
     class: "MockSensor"
-    publishing_topic: "mock"
+    publishing_topic: "data-stream/sensors/mock"
     poll_frequency_ms: 1000
     flush_size: 10
     flush_after_s: 1000

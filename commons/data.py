@@ -111,5 +111,4 @@ class ErrorHandler:
         topic_name = f'{self.channel_prefix}/{kwargs.get("topic", "unknown")}'
         # Flatten list of list of Error and convert to dict for easy json serialisation.
         errors = [err.__dict__ for error in errors for err in error]
-        if len(errors) > 0:
-            self.publisher.publish(json.dumps(errors), topic_name)
+        self.publisher.publish(json.dumps(errors), topic_name) if len(errors) > 0 else logger.debug('Empty error list')
