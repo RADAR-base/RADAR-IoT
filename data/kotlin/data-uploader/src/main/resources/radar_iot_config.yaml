@@ -27,6 +27,14 @@ sensorConfigs:
     converterClasses:
       - consumerName: "rest_proxy"
         converterClass: "org.radarbase.iot.converter.avro.coralenviro.CoralEnviroTemperatureConverter"
+  - sensorName: "grovepi-air-quality"
+    inputTopic: "data-stream/sensors/grovepi-air-quality"
+    outputTopic: "grove_pi_air_quality"
+    converterClasses:
+      - consumerName: "rest_proxy"
+        converterClass: "org.radarbase.iot.converter.avro.grovepi.AirQualityAvroConverter"
+      - consumerName: "influx_db"
+        converterClass: "org.radarbase.iot.converter.influxdb.grovepi.AirQualitySensorInfluxDbConverter"
   - sensorName: "mock"
     inputTopic: "data-stream/sensors/mock"
     outputTopic: "mock"
