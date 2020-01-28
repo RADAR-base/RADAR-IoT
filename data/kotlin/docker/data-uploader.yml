@@ -1,0 +1,10 @@
+version: '2.4'
+
+services:
+  data-uploader:
+    build: ../
+    image: radarbase/radar-iot-datauploader:latest
+    environment:
+      RADAR_IOT_CONFIG_LOCATION: '/usr/local/etc/radar/iot/radar_iot_config.yaml'
+    volumes:
+      - "./etc/data-uploader/radar_iot_config.yaml:/usr/local/etc/radar/iot/radar_iot_config.yaml:ro"

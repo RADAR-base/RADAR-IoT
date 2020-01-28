@@ -47,7 +47,7 @@ REPLICATION ${influxDbConfig.retentionPolicyReplicationFactor} DEFAULT"""
         setDatabase(influxDbConfig.dbName)
         setRetentionPolicy(influxDbConfig.retentionPolicyName)
 
-        enableBatch(BatchOptions.DEFAULTS.exceptionHandler { t, u ->
+        enableBatch(BatchOptions.DEFAULTS.exceptionHandler { _, u ->
             logger.warn(
                 "Error thrown when writing data to influxDB.", u
             )

@@ -4,6 +4,10 @@ networks:
   db:
     internal: true
 
+volumes:
+  grafana_cache: {}
+  influx_cache: {}
+
 services:
   influxdb:
     image: influxdb:1.7.8
@@ -39,3 +43,5 @@ services:
     volumes:
       - "./etc/webserver/nginx.conf:/etc/nginx/nginx.conf:ro"
       - "./etc/webserver/influx.conf:/etc/nginx/influx.conf:ro"
+      - "grafana_cache:/etc/nginx/temp/grafana_cache"
+      - "influx_cache:/etc/nginx/temp/influx_cache"
