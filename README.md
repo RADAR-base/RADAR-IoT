@@ -199,8 +199,36 @@ The Configuration is validated against the [json-schema](https://json-schema.org
 
 
 ### Installation
-TODO
--
+
+#### Raspberry Pi (Zero, 2, 3 and 4)
+
+**Pre-requisites:**
+
+1. It is recommended to use this on a Raspberry pi 3+.
+2. The requirement to run this is python 3.7+. 
+3. It is recommended to run this on [Raspbian Buster OS](https://www.raspberrypi.org/downloads/raspbian/) which comes pre-installed with python 3.7.
+4. It is also recommended to use 
+
+ 
+To install the dependencies, navigate to the root folder of the  run the following-
+
+```shell script
+python3 -m pip install -r 
+```
+
+Then, run the program using - 
+
+```shell script
+python3 main.py
+```
+
+**Note:** If using any of the grove pi hat and modules, you will need to install GrovePi library separately using the command below -
+
+```shell script
+sudo bash scripts/install_grovepi.sh
+```
+For more info, look at the [GrovePi official docs](https://www.dexterindustries.com/GrovePi/get-started-with-the-grovepi/)
+
 
 ### Docker
 TODO
