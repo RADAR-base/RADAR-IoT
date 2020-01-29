@@ -10,6 +10,12 @@ radarConfig:
   schemaRegistryUrl: "http://localhost:8084/"
   kafkaUrl: "http://localhost:8090/radar-gateway/"
 
+redisProperties:
+  host: redis
+  port: 6379
+  timeOut: 2000
+  password:
+
 # If a converter is not specified for a particular consumer for a sensor,
 # then the data from the sensor will not be forwarded to that consumer for processing
 sensorConfigs:
