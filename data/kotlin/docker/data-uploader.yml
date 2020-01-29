@@ -4,6 +4,9 @@ networks:
   redis:
     external: true
 
+volumes:
+  nitrite-db: {}
+
 services:
   data-uploader:
     build: ../
@@ -14,6 +17,7 @@ services:
       RADAR_IOT_CONFIG_LOCATION: '/usr/local/etc/radar/iot/radar_iot_config.yaml'
     volumes:
       - "./etc/data-uploader/radar_iot_config.yaml:/usr/local/etc/radar/iot/radar_iot_config.yaml:ro"
+      - "nitrite-db:/usr/local/radar/iot"
 
   redis:
     image: arm32v7/redis:5.0.5-alpine
