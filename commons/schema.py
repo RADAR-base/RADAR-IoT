@@ -113,6 +113,9 @@ class GithubAvroSchemaRetriever(AvroSchemaRetriever):
             self.git_user = kwargs.get('git_user')
             self.git_password = kwargs.get('git_password')
             self.git = login(self.git_user, self.git_password)
+        elif 'token' in kwargs:
+            self.token = kwargs.get('token')
+            self.git = login(token=self.token)
         else:
             self.git_user = None
             self.git_password = None
