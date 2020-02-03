@@ -328,9 +328,10 @@ There are 3 types of schema retrievers provided which are located in the [schema
               extension: '.avsc'
               git_user: 'username'
               git_password: '*******'
+              token: ''
     ```
     Like the file retriever, this will also walk down the `basepath` in the repository and retrieve schemas with the `extension` provided. 
-    If the repository is public there is no requirement to specify the `git_user` and `git_password` but it is still recommended as it increases the Github Api limits.
+    If the repository is public, there is no requirement to specify the `git_user` and `git_password` but it is still recommended as it increases the Github Api limits. You can also provide a `token`([personal access token](https://github.com/settings/tokens)) inplace of username/password for better security.
     
 * **SchemaRegistrySchemaRetriever**: This will retrieve schemas from the Confluent Schema Registry. It can be configured as follows. The `schema_registry_url` is a required argument.
     ```yaml
