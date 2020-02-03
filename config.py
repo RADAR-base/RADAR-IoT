@@ -165,7 +165,8 @@ class Factory:
             publishing_thread_pool = ThreadPoolExecutor(max_workers=config.get_publisher()['publisher_max_threads'])
             Factory.publisher = DynamicImporter(config.get_publisher()[MODULE_KEY],
                                                 config.get_publisher()[CLASS_KEY],
-                                                Factory.get_connection(), publishing_thread_pool).instance
+                                                connection=Factory.get_connection(),
+                                                publisher_thread_pool=publishing_thread_pool).instance
             return Factory.publisher
         else:
             return Factory.publisher

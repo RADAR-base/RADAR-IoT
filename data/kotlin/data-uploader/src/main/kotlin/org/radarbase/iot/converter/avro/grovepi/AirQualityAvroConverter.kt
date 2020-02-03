@@ -12,7 +12,7 @@ import org.radarcns.kafka.ObservationKey
 import org.slf4j.LoggerFactory
 
 class AirQualityAvroConverter(
-    private val topicName: String = "grove_pi_air_quality",
+    private val topicName: String = "radar_iot_grove_pi_air_quality",
     private val messageParser: Parser<String, List<GrovePiAirQualitySensor>> =
         JsonMessageParser(typeReference)
 ) :

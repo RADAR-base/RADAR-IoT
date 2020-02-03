@@ -1,5 +1,7 @@
 import logging
+from abc import ABC
 from datetime import datetime
+from threading import RLock
 
 # Install the grovepi library first using instructions here - https://github.com/DexterInd/GrovePi
 import grovepi
@@ -9,15 +11,42 @@ from sensors import Sensor
 
 logger = logging.getLogger('root')
 
+grovepi_lock: RLock = RLock()
 
-class AirQualitySensor(Sensor):
+
+class GrovePiSensor(Sensor, ABC):
+    """The base class for requesting data from any sensors connected vai the Grove Pi hat.
+    The GrovePi Python library is not Thread-Safe and this ensures that any sensor that queries the grovepi should first
+    acquire the Lock to prevent concurrent access.
+
+    Some other configs necessary to get the GrovePi to work better on Raspberry Pi 4(although could apply to other
+    Raspberry pi models too)-
+
+    1. Turn off the One-wire Interface (1-W). This interferes with the grovepi and could make it unresponsive.
+    2. Make sure not other external program/application is accessing the grovepi at the same time.
+    3. Anytime you need to access the grovepi library in your sensor implementation, please acquire the lock first using
+            with grovepi_lock:
+                // DO you stuff with grovepi
+    """
+
+    def __init__(self, name, topic, poll_freq_ms, flush_size=100, flush_after_s=2000):
+        super().__init__(name, topic, poll_freq_ms, flush_size, flush_after_s)
+
+    def poll(self) -> None:
+        logger.debug('Acquiring Lock for GrovePi')
+        with grovepi_lock:
+            super().poll()
+        logger.debug('Lock released.')
+
+
+class AirQualitySensor(GrovePiSensor):
 
     def __init__(self, name, topic, poll_freq_ms, flush_size, flush_after_s):
         # Connect the Grove Air Quality Sensor to analog port A0
         # SIG,NC,VCC,GND
         self.air_sensor = 0
-
-        grovepi.pinMode(self.air_sensor, "INPUT")
+        with grovepi_lock:
+            grovepi.pinMode(self.air_sensor, "INPUT")
         super().__init__(name, topic, poll_freq_ms, flush_size, flush_after_s)
 
     def get_measurement(self):

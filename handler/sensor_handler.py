@@ -63,3 +63,6 @@ class SensorHandler:
         elif event.code == aps_events.EVENT_JOB_MISSED:
             logging.warning(
                 f'The Job with job id {event.job_id} was missed which was supposed to run at {event.scheduled_run_time}')
+        elif event.code == aps_events.EVENT_JOB_MAX_INSTANCES:
+            # TODO Add an exponential back off to the job
+            pass

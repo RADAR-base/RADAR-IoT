@@ -13,6 +13,8 @@ services:
     image: radarbase/radar-iot-datauploader:latest
     networks:
       - redis
+    depends_on:
+      - redis
     environment:
       RADAR_IOT_CONFIG_LOCATION: '/usr/local/etc/radar/iot/radar_iot_config.yaml'
     volumes:
