@@ -1,0 +1,14 @@
+# Remove kotlin library
+data
+
+# remove gradle files
+.gradle
+
+# ignore IDEA files
+.idea
+
+# ignore travis
+travis
+
+# ignore venv
+venv
