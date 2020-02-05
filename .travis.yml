@@ -14,14 +14,14 @@ matrix:
       # command to install dependencies
       install:
         - sudo apt-get install -y lsb-release build-essential
-        - pip3 install -r requirements.txt
+        - sudo pip3 install -r requirements.txt
         - cp travis/config.yaml.template config.yaml
         - "sed -i 's|token:.*|token: '${GITHUB_TOKEN}'|g' config.yaml"
         - cat config.yaml
 
       script:
         # Run the test for 200 seconds.
-        - python3 test_runner.py 200
+        - sudo python3 test_runner.py 200
 
     - arch:
         - arm64
@@ -51,6 +51,7 @@ matrix:
         - sudo apt-get install -y libffi-dev libssl-dev
         - sudo apt-get install -y python python-pip
         - sudo apt-get remove python-configparser
+        - sudo apt-get install -y screen
         - sudo pip install docker-compose
         - sudo mkdir -p /usr/local/radar/iot
         - cd data/kotlin/docker
