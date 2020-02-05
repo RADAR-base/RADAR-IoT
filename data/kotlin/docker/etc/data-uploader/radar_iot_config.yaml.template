@@ -4,7 +4,7 @@ radarConfig:
   userId: "sub-1"
   sourceId: "03d28e5c-e005-46d4-a9b3-279c27fbbc83"
   baseUrl: "http://localhost:8081"
-  oAuthClientId: "radar_iot"
+  oAuthClientId: "radar-iot"
   oAuthClientSecret: "secret"
   metaToken: "dlsLwIw0E1cP"
   schemaRegistryUrl: "http://localhost:8084/"

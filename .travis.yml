@@ -42,11 +42,12 @@ matrix:
         - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
         - chmod +x docker-compose
         - sudo mv docker-compose /usr/local/bin
-        - cp data/kotlin/docker/etc/env.template data/kotlin/docker/.env
-        - docker-compose -f data/kotlin/docker/docker-compose.yml -f data/kotlin/docker/influxdb.yml up -d
+        - cd data/kotlin/docker
+        - cp etc/env.template .env
+        - docker-compose -f docker-compose.yml -f influxdb.yml up -d
         # Wait for services to start up.
         - sleep 50
-        - cd data/kotlin/data-uploader
+        - cd ../../data-uploader
 
       # command to install dependencies
       install:

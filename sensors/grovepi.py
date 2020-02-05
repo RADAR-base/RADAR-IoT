@@ -25,8 +25,12 @@ class GrovePiSensor(Sensor, ABC):
     1. Turn off the One-wire Interface (1-W). This interferes with the grovepi and could make it unresponsive.
     2. Make sure not other external program/application is accessing the grovepi at the same time.
     3. Anytime you need to access the grovepi library in your sensor implementation, please acquire the lock first using
+
             with grovepi_lock:
                 // DO you stuff with grovepi
+
+        Note that you do not need to do this in the get_measurement() method as that is already handled
+         in the poll function here.
     """
 
     def __init__(self, name, topic, poll_freq_ms, flush_size=100, flush_after_s=2000):
@@ -40,6 +44,7 @@ class GrovePiSensor(Sensor, ABC):
 
 
 class AirQualitySensor(GrovePiSensor):
+    # http://wiki.seeedstudio.com/Grove-Air_Quality_Sensor_v1.3/
 
     def __init__(self, name, topic, poll_freq_ms, flush_size, flush_after_s):
         # Connect the Grove Air Quality Sensor to analog port A0

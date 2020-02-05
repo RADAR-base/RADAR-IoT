@@ -17,6 +17,15 @@ An example file can be found in [radar_iot_config.yaml](/radar_iot_config.yaml.t
 ## Usage
 This can be run as a normal jvm application by running the main class `org.radarbase.iot.DataUploaderApplication.kt`
 
+## Docker
+
+A [Dockerfile](../Dockerfile) is provided for convenience of deploying the application. A docker-compose file is also provided to enable the application and it's dependencies to be deployed together.
+The docker-compose file is present [here](../docker/data-uploader.yml). 
+
+You will first need to configure the application by copying the [radar_iot_config.yaml.template](../docker/etc/data-uploader/radar_iot_config.yaml.template) to [radar_iot_config.yaml](../docker/etc/data-uploader/radar_iot_config.yaml) and updating the configuration values.
+
+You can then run the applications as `docker-compose -f docker/data-uploader.yml up -d`.
+
 ## Authorization
 For the [Rest Proxy Data Consumer](/src/main/kotlin/org/radarbase/iot/consumer/RestProxyDataConsumer.kt), by default, authorization is enabled using [Management Portal](https://github.com/RADAR-base/ManagementPortal) and hence the uploader will work with [Gateway](https://github.com/RADAR-base/RADAR-Gateway) as well as [Rest Proxy](https://docs.confluent.io/current/kafka-rest/index.html)
 
