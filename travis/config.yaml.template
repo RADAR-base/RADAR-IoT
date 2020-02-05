@@ -20,6 +20,7 @@ converter:
       branch: 'sensors'
       basepath: 'commons/iot/sensor'
       extension: '.avsc'
+      token: 'xyz'
 
 expose_topic_endpoint: True
 root_logger_level: DEBUG

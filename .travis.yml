@@ -12,6 +12,7 @@ matrix:
       install:
         - pip3 install -r requirements.txt
         - cp travis/config.yaml.template config.yaml
+        - sed -i 's|token:.*|token: ${$GITHUB_TOKEN}|g' config.yaml
 
       script:
         # Run the test for 200 seconds.
@@ -47,7 +48,7 @@ matrix:
         - docker-compose -f docker-compose.yml -f influxdb.yml up -d
         # Wait for services to start up.
         - sleep 50
-        - cd ../../data-uploader
+        - cd ../data-uploader
 
       # command to install dependencies
       install:
