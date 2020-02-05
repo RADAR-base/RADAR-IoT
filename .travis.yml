@@ -2,7 +2,6 @@ matrix:
   include:
     - dist: bionic
       arch:
-        - amd64
         - arm64
       os: linux
       language: python
@@ -17,13 +16,13 @@ matrix:
         - pip3 install -r requirements.txt
         - cp travis/config.yaml.template config.yaml
         - "sed -i 's|token:.*|token: '${GITHUB_TOKEN}'|g' config.yaml"
+        - cat config.yaml
 
       script:
         # Run the test for 200 seconds.
         - python3 test_runner.py 200
 
     - arch:
-        - amd64
         - arm64
       os: linux
 
