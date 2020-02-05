@@ -13,6 +13,7 @@ matrix:
 
       # command to install dependencies
       install:
+        - sudo apt-get install -y lsb-release build-essential
         - pip3 install -r requirements.txt
         - cp travis/config.yaml.template config.yaml
         - "sed -i 's|token:.*|token: '${GITHUB_TOKEN}'|g' config.yaml"
@@ -47,10 +48,10 @@ matrix:
           - $HOME/.gradle/wrapper/
 
       before_install:
-        - sudo rm /usr/local/bin/docker-compose
-        - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
-        - chmod +x docker-compose
-        - sudo mv docker-compose /usr/local/bin
+        - sudo apt-get install -y libffi-dev libssl-dev
+        - sudo apt-get install -y python python-pip
+        - sudo apt-get remove python-configparser
+        - sudo pip install docker-compose
         - sudo mkdir -p /usr/local/radar/iot
         - cd data/kotlin/docker
         - cp etc/env.template .env
