@@ -16,7 +16,7 @@ matrix:
       install:
         - pip3 install -r requirements.txt
         - cp travis/config.yaml.template config.yaml
-        - sed -i 's|token:.*|token: '${GITHUB_TOKEN}'|g' config.yaml
+        - "sed -i 's|token:.*|token: '${GITHUB_TOKEN}'|g' config.yaml"
 
       script:
         # Run the test for 200 seconds.
@@ -52,6 +52,7 @@ matrix:
         - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
         - chmod +x docker-compose
         - sudo mv docker-compose /usr/local/bin
+        - sudo mkdir -p /usr/local/radar/iot
         - cd data/kotlin/docker
         - cp etc/env.template .env
         - docker-compose -f docker-compose.yml -f influxdb.yml up -d
