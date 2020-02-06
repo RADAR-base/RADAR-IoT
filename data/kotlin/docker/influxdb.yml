@@ -7,6 +7,7 @@ networks:
 volumes:
   grafana_cache: {}
   influx_cache: {}
+  grafana-storage: {}
 
 services:
   influxdb:
@@ -25,9 +26,12 @@ services:
     image: grafana/grafana
     networks:
       - db
+    volumes:
+      - "grafana-storage:/var/lib/grafana"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_SECURITY_ADMIN_PASSWORD}
       GF_SERVER_ROOT_URL: ${GRAFANA_SERVER_ROOT_URL}
+      GF_INSTALL_PLUGINS: ${GF_INSTALL_PLUGINS}
 
   webserver:
     image: nginx:1.14.0-alpine

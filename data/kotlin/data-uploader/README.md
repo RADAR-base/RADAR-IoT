@@ -12,7 +12,7 @@ These are the explanation of the main terms used in the context of this applicat
 
 ## Configuration
 Configuration files can be added to classpath or it's location can be defined by the environment variable `RADAR_IOT_CONFIG_LOCATION`.
-An example file can be found in [radar_iot_config.yaml](/radar_iot_config.yaml.template).
+An example file can be found in [radar_iot_config.yaml](./radar_iot_config.yaml.template).
 
 ## Usage
 This can be run as a normal jvm application by running the main class `org.radarbase.iot.DataUploaderApplication.kt`
@@ -27,17 +27,17 @@ You will first need to configure the application by copying the [radar_iot_confi
 You can then run the applications as `docker-compose -f docker/data-uploader.yml up -d`.
 
 ## Authorization
-For the [Rest Proxy Data Consumer](/src/main/kotlin/org/radarbase/iot/consumer/RestProxyDataConsumer.kt), by default, authorization is enabled using [Management Portal](https://github.com/RADAR-base/ManagementPortal) and hence the uploader will work with [Gateway](https://github.com/RADAR-base/RADAR-Gateway) as well as [Rest Proxy](https://docs.confluent.io/current/kafka-rest/index.html)
+For the [Rest Proxy Data Consumer](./src/main/kotlin/org/radarbase/iot/consumer/RestProxyDataConsumer.kt), by default, authorization is enabled using [Management Portal](https://github.com/RADAR-base/ManagementPortal) and hence the uploader will work with [Gateway](https://github.com/RADAR-base/RADAR-Gateway) as well as [Rest Proxy](https://docs.confluent.io/current/kafka-rest/index.html)
 
 ## Contributing
 For contributing, please take a look at the `commons` module and `data-uploader` module. Code should be formatted using the Kotlin Style Guide. If you want to contribute a feature or fix, browse our issues and please make a pull request.
-For simple additions like new sensors, please take a look in the [converter](/src/main/kotlin/org/radarbase/iot/converter) package where you will need to add new Converters for your sensor based on the consumers.
+For simple additions like new sensors, please take a look in the [converter](./src/main/kotlin/org/radarbase/iot/converter) package where you will need to add new Converters for your sensor based on the consumers.
 
 ### Extending
 Various bits of the application can be extended - 
 
-1. To extend the authorizer, look at extending the `Authorizer` interface in the `commons` module. Currently, only `ManagementPortalAuthorizer` is implemented.
-2. To add another data consumer/processor (like [RestProxyDataConsumer](/src/main/kotlin/org/radarbase/iot/consumer/RestProxyDataConsumer.kt)), extend the [DataConsumer](/src/main/kotlin/org/radarbase/iot/consumer/DataConsumer.kt) abstract class and specify how you want to process the data. Also see [InfluxDb consumer](/src/main/kotlin/org/radarbase/iot/consumer/InfluxDbDataConsumer.kt).
-3. To add a new type of data format for reading data from the pub/sub system (Currently json is supported via [JsonMessageParser](/src/main/kotlin/org/radarbase/iot/converter/messageparser/JsonMessageParser.kt) class), you can just implement the `Parser.kt` interface from the `util` package in `commons` module and then pass that in the [Converters](/src/main/kotlin/org/radarbase/iot/converter)
-4. Currently, a Redis based handler for data is provided in [RedisDataHandler](/src/main/kotlin/org/radarbase/iot/handler/RedisDataHandler.kt), but other handlers can be added by implementing the [Handler](/src/main/kotlin/org/radarbase/iot/handler/Handler.kt) interface. This will then need to be added to the array of handlers in the [main class](/src/main/kotlin/org/radarbase/iot/DataUploaderApplication.kt).
-5. The communication with the pub/sub system is handled using a [connection](/src/main/kotlin/org/radarbase/iot/pubsub/connection) and a [subscriber](/src/main/kotlin/org/radarbase/iot/pubsub/subscriber). Both of which can be be extended by implementing their respective interfaces.
+1. To extend the authorizer, look at extending the [Authorizer](../commons/src/main/kotlin/org/radarbase/iot/commons/auth/Authorizer.kt) interface in the [commons]((../commons) module. Currently, only [ManagementPortalAuthorizer](../commons/src/main/kotlin/org/radarbase/iot/commons/auth/ManagementPortalAuthorizer.kt) is implemented.
+2. To add another data consumer/processor (like [RestProxyDataConsumer](./src/main/kotlin/org/radarbase/iot/consumer/RestProxyDataConsumer.kt)), extend the [DataConsumer](/src/main/kotlin/org/radarbase/iot/consumer/DataConsumer.kt) abstract class and specify how you want to process the data. Also see [InfluxDb consumer](./src/main/kotlin/org/radarbase/iot/consumer/InfluxDbDataConsumer.kt).
+3. To add a new type of data format for reading data from the pub/sub system (Currently json is supported via [JsonMessageParser](./src/main/kotlin/org/radarbase/iot/converter/messageparser/JsonMessageParser.kt) class), you can just implement the `Parser.kt` interface from the `util` package in `commons` module and then pass that in the [Converters](./src/main/kotlin/org/radarbase/iot/converter)
+4. Currently, a Redis based handler for data is provided in [RedisDataHandler](./src/main/kotlin/org/radarbase/iot/handler/RedisDataHandler.kt), but other handlers can be added by implementing the [Handler](./src/main/kotlin/org/radarbase/iot/handler/Handler.kt) interface. This will then need to be added to the array of handlers in the [main class](./src/main/kotlin/org/radarbase/iot/DataUploaderApplication.kt).
+5. The communication with the pub/sub system is handled using a [connection](./src/main/kotlin/org/radarbase/iot/pubsub/connection) and a [subscriber](./src/main/kotlin/org/radarbase/iot/pubsub/subscriber). Both of which can be be extended by implementing their respective interfaces.
