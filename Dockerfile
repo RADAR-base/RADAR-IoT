@@ -15,8 +15,13 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
         apt-get install --no-install-recommends -y python3-setuptools python3-pip python3-dev cython3 python3-numpy python3-scipy python3-rpi.gpio python3-serial python3-smbus && \
        rm -rf /var/lib/apt/lists/*
 
-RUN sudo python3 -m pip install numpy
-RUN sudo python3 -m pip install RPi.GPIO
+# Download Wheel to install rpi.gpio for faster installation (avoids building from scratch)
+RUN curl -o RPi.GPIO-0.7.0-cp37-cp37m-linux_armv7l.whl https://www.piwheels.org/simple/rpi-gpio/RPi.GPIO-0.7.0-cp37-cp37m-linux_armv7l.whl#sha256=6a4791f41cafc2ee6e4cb70e5bd31fadc66a0cfab29b38df8723a98f6f73ad5a
+RUN sudo python3 -m pip install RPi.GPIO-0.7.0-cp37-cp37m-linux_armv7l.whl
+
+# Download Wheel to install numpy for faster installation (avoids building from scratch)
+RUN curl -o numpy-1.18.1-cp37-cp37m-linux_armv7l.whl https://www.piwheels.org/simple/numpy/numpy-1.18.1-cp37-cp37m-linux_armv7l.whl#sha256=24817c750cbb59322d2fd5b1c5ddb444417c7ad86dfd0451b41ba299321198b6
+RUN sudo python3 -m pip install numpy-1.18.1-cp37-cp37m-linux_armv7l.whl
 
 # Download Wheel to install scipy (no wheel for armv7 in debian by default)
 RUN curl -o scipy-1.3.3-cp37-cp37m-linux_armv7l.whl https://www.piwheels.org/simple/scipy/scipy-1.3.3-cp37-cp37m-linux_armv7l.whl#sha256=edda366fda13cfad10c3cf58341297f0ff1255020076a247ce50e594b42849d0
