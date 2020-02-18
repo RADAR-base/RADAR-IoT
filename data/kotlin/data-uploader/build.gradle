@@ -1,12 +1,9 @@
 plugins {
-    id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.3.41'
     id 'application'
+    id "com.github.johnrengelman.shadow" version "5.2.0"
 }
 
 group 'org.radarbase.iot'
-version '1.0-SNAPSHOT'
-
 sourceCompatibility = 1.8
 
 repositories {
@@ -25,12 +22,16 @@ kotlin {
     targetCompatibility = 1.8
 }
 
+sourceSets {
+    main.kotlin.srcDirs += 'src/main/kotlin'
+    main.java.srcDirs += 'src/main/java'
+}
+
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "redis.clients:jedis:3.1.0"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1"
     implementation group: 'org.radarbase', name: 'radar-commons', version: '0.12.2'
-    implementation 'org.radarcns:radar-schemas-commons:0.5.5-SNAPSHOT'
+    implementation 'org.radarcns:radar-schemas-commons:0.5.6-SNAPSHOT'
 
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: jacksonVersion
     implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: jacksonVersion
@@ -47,3 +48,11 @@ dependencies {
 application {
     mainClassName = 'org.radarbase.iot.DataUploaderApplicationKt'
 }
+
+shadowJar {
+    baseName = 'data-uploader'
+    classifier = 'all'
+    archiveVersion = ''
+}
+
+build.dependsOn shadowJar

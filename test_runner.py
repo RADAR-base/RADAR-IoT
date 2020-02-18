@@ -2,12 +2,12 @@ from sys import argv
 from time import sleep
 
 from commons import log
-from config import ConfigHelper
+from config import Factory
 from handler.sensor_handler import SensorHandler
 
 
 def test(run_time):
-    config = ConfigHelper.get_configuration()
+    config = Factory.get_configuration()
     logger = log.setup_custom_logger('root', config.get_root_logger_level())
     logger.info(config.get_config())
 

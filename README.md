@@ -119,7 +119,7 @@ Each sensor is configured as follows -
         flush_after_s: 1000
     ```
     Currently, implementations for the following sensors are provided -
-    - [Google Coral Environment Board Sensors](https://coral.withgoogle.com/products/environmental/): In the modules - [coral_enviro_humidity](sensors/coral_enviro_humidity.py), [coral_enviro_light](coral_enviro_light.py), [coral_enviro_temperature](coral_enviro_temperature.py)
+    - [Google Coral Environment Board Sensors](https://coral.withgoogle.com/products/environmental/): In the module - [coral_enviro](sensors/coral_enviro.py)
     
     By **Default** , No Sensors are added to the Configuration. This is because it is hardware dependent and thus we cannot have a default sensor config. If sensor config is not provided, the program will fail with an exception.
 
@@ -199,8 +199,36 @@ The Configuration is validated against the [json-schema](https://json-schema.org
 
 
 ### Installation
-TODO
--
+
+#### Raspberry Pi (Zero, 2, 3 and 4)
+
+**Pre-requisites:**
+
+1. It is recommended to use this on a Raspberry pi 3+.
+2. The requirement to run this is python 3.7+. 
+3. It is recommended to run this on [Raspbian Buster OS](https://www.raspberrypi.org/downloads/raspbian/) which comes pre-installed with python 3.7.
+4. It is also recommended to use 
+
+ 
+To install the dependencies, navigate to the root folder of the  run the following-
+
+```shell script
+python3 -m pip install -r 
+```
+
+Then, run the program using - 
+
+```shell script
+python3 main.py
+```
+
+**Note:** If using any of the grove pi hat and modules, you will need to install GrovePi library separately using the command below -
+
+```shell script
+sudo bash scripts/install_grovepi.sh
+```
+For more info, look at the [GrovePi official docs](https://www.dexterindustries.com/GrovePi/get-started-with-the-grovepi/)
+
 
 ### Docker
 TODO
@@ -234,7 +262,7 @@ For example, following is implementation of a test sensor. You just need to spec
 ```python
 import logging
 
-from sensors.sensor import Sensor
+from sensors import Sensor
 
 logger = logging.getLogger('root')
 
@@ -251,21 +279,22 @@ class YourTestSensor(Sensor):
 Remember to pass all the required constructor values to the super class.
 Also notice the use of the root logger which was discussed earlier in the [configuration](#configuration) section.
 
-Additionally, you can also extend other methods of sensor used for polling, flushing, etc. These can be found in the super class [Sensor](sensors/sensor.py)
+Additionally, you can also extend other methods of sensor used for polling, flushing, etc. These can be found in the super class [Sensor](sensors/__init__.py)
 
 For already available sensor implementations, take a look at various sensors in the [sensors](/sensors) package.
 
 ### Extending the Publisher module
-TODO
--
+This can be extended by extending the `Publisher` abstract class in [pubsub.publisher](pubsub/__init__.py) module.
+You will need to provide implementation of the `_publish` method which will handle all the logic of publishing the messages. Ideally these should also convert the messages before publishing. 
+Take a look at `RedisPublisher` in [pubsub.redis_publisher](pubsub/redis_publisher.py) module for an example implementation.
 
 ### Extending the Message Converter module
-TODO
--
+Just extend the `MessageConverter` abstract class in [commons.message_converter](commons/message_converter.py) module.
+You will need to provide implementation for `convert` (for a single message) and `convert_all` (for a list of messages) methods.
+Take a look at `AvroValidatedJsonConverter` in the same module for an example implementation.
 
 ### Extending the Data Upload module
-TODO
--
+Please read the data uploader module [documentation](/data/kotlin/data-uploader). This is currently provided in Kotlin programming language but can be created in any language desired (which has clients for subscribing to the pub/sub system).
 
 
 ## Additional Info
@@ -299,8 +328,16 @@ There are 3 types of schema retrievers provided which are located in the [schema
               extension: '.avsc'
               git_user: 'username'
               git_password: '*******'
+              token: ''
     ```
     Like the file retriever, this will also walk down the `basepath` in the repository and retrieve schemas with the `extension` provided. 
-    If the repository is public there is no requirement to specify the `git_user` and `git_password` but it is still recommended as it increases the Github Api limits.
+    If the repository is public, there is no requirement to specify the `git_user` and `git_password` but it is still recommended as it increases the Github Api limits. You can also provide a `token`([personal access token](https://github.com/settings/tokens)) inplace of username/password for better security.
     
-* **SchemaRegistrySchemaRetriever**: TODO
+* **SchemaRegistrySchemaRetriever**: This will retrieve schemas from the Confluent Schema Registry. It can be configured as follows. The `schema_registry_url` is a required argument.
+    ```yaml
+          schema_retriever:
+            module: 'commons.schema'
+            class: 'SchemaRegistrySchemaRetriever'
+            args:
+              schema_registry_url: 'https://radar-cns-platform.rosalind.kcl.ac.uk/schema'
+    ```

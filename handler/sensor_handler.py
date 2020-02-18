@@ -6,9 +6,9 @@ from apscheduler.executors.pool import ProcessPoolExecutor
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from commons.message_converter import MessageConverter
-from config import Configuration, ConfigHelper
-from pubsub.publisher import Publisher
-from sensors.sensor import Sensor
+from config import Configuration, Factory
+from pubsub import Publisher
+from sensors import Sensor
 
 logger = logging.getLogger('root')
 
@@ -20,9 +20,9 @@ class SensorHandler:
     publishing_thread_pool: ThreadPoolExecutor = None
 
     def __init__(self, config: Configuration):
-        self.publisher: Publisher = ConfigHelper.get_publisher()
-        self.converter: MessageConverter = ConfigHelper.get_converter()
-        self.sensors = ConfigHelper.get_sensors()
+        self.publisher: Publisher = Factory.get_publisher()
+        self.converter: MessageConverter = Factory.get_converter()
+        self.sensors = Factory.get_sensors()
 
         # We don't use ProcessPool right now for the jobs but may include in the future for compute intensive tasks.
         executors = {
@@ -63,3 +63,6 @@ class SensorHandler:
         elif event.code == aps_events.EVENT_JOB_MISSED:
             logging.warning(
                 f'The Job with job id {event.job_id} was missed which was supposed to run at {event.scheduled_run_time}')
+        elif event.code == aps_events.EVENT_JOB_MAX_INSTANCES:
+            # TODO Add an exponential back off to the job
+            pass

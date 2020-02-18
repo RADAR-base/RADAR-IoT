@@ -1,8 +1,6 @@
 package org.radarbase.iot.converter.influxdb.coralenviro
 
 import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.influxdb.dto.Point
 import org.radarbase.iot.commons.util.Parser
 import org.radarbase.iot.converter.influxdb.InfluxDbConverter
@@ -35,9 +33,6 @@ class CoralEnviroTemperatureInfluxDbConverter(
         private val logger =
             LoggerFactory.getLogger(CoralEnviroHumidityInfluxDbConverter::class.java)
 
-        private val objectMapper = ObjectMapper().also { it.registerModule(KotlinModule()) }
-
         private val typeReference = object : TypeReference<List<CoralEnviroTemperature>>() {}
     }
-
 }

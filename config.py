@@ -5,13 +5,15 @@ from typing import List
 
 import anyconfig
 
+from commons.data import DataProcessor, ErrorHandler
 from commons.dynamic_import import DynamicImporter
 from commons.message_converter import MessageConverter
 from commons.schema import SchemaNamingStrategy, SensorBasedSchemaNamingStrategy
-from pubsub.connection import Connection
-from pubsub.publisher import Publisher
-from sensors.sensor import Sensor
+from pubsub import Connection
+from pubsub import Publisher
+from sensors import Sensor
 
+# Keys in the configuration
 MODULE_KEY = 'module'
 CLASS_KEY = 'class'
 TOPIC_KEY = 'publishing_topic'
@@ -23,6 +25,7 @@ ROOT_LOGGER_LEVEL_KEY = 'root_logger_level'
 CONVERTER_KEY = 'converter'
 SCHEDULER_MAX_THREADS_KEY = 'scheduler_max_threads'
 EXPOSE_TOPIC_ENDPOINT_KEY = 'expose_topic_endpoint'
+CONNECTION_KEY = 'connection'
 
 # Default values
 CONNECTION = {
@@ -37,7 +40,7 @@ CONNECTION = {
 PUBLISHER = {
     MODULE_KEY: 'pubsub.redis_publisher',
     CLASS_KEY: 'RedisPublisher',
-    'connection': CONNECTION,
+    CONNECTION_KEY: CONNECTION,
     'publisher_max_threads': 5
 }
 
@@ -101,33 +104,31 @@ class Configuration:
     def get_converter(self):
         return self.config['converter']
 
-    def is_travis(self):
-        return self.config['travis']
-
 
 config = Configuration()
 
 
-class ConfigHelper:
+class Factory:
     converter = None
     publisher = None
+    data_processor = None
 
     @staticmethod
     def get_converter() -> [MessageConverter, None]:
-        if ConfigHelper.converter is None:
+        if Factory.converter is None:
             converter_conf = config.get_converter()
             if converter_conf is not None:
                 schema_retriever = DynamicImporter(converter_conf['schema_retriever'][MODULE_KEY],
                                                    converter_conf['schema_retriever'][CLASS_KEY],
-                                                   kwargs=converter_conf['schema_retriever']['args']).instance
+                                                   **converter_conf['schema_retriever']['args']).instance
 
-                ConfigHelper.converter = DynamicImporter(converter_conf[MODULE_KEY],
-                                                         converter_conf[CLASS_KEY], schema_retriever).instance
-                return ConfigHelper.converter
+                Factory.converter = DynamicImporter(converter_conf[MODULE_KEY],
+                                                    converter_conf[CLASS_KEY], schema_retriever).instance
+                return Factory.converter
             else:
                 return None
         else:
-            return ConfigHelper.converter
+            return Factory.converter
 
     @staticmethod
     def get_connection() -> Connection:
@@ -139,15 +140,14 @@ class ConfigHelper:
                                config.get_publisher()['connection']['password']).instance
 
     @staticmethod
-    def get_publisher() -> Publisher:
-        if ConfigHelper.publisher is None:
-            publishing_thread_pool = ThreadPoolExecutor(max_workers=config.get_publisher()['publisher_max_threads'])
-            ConfigHelper.publisher = DynamicImporter(config.get_publisher()[MODULE_KEY],
-                                                     config.get_publisher()[CLASS_KEY],
-                                                     ConfigHelper.get_connection(), publishing_thread_pool).instance
-            return ConfigHelper.publisher
+    def get_data_processor() -> DataProcessor:
+        if Factory.data_processor is None:
+            Factory.data_processor = DataProcessor(Factory.get_converter(), Factory.get_publisher(),
+                                                   Factory.get_default_naming_strategy(),
+                                                   Factory.get_default_error_handler())
+            return Factory.data_processor
         else:
-            return ConfigHelper.publisher
+            return Factory.data_processor
 
     @staticmethod
     def get_sensors() -> List[Sensor]:
@@ -160,9 +160,25 @@ class ConfigHelper:
         return sensor_list
 
     @staticmethod
+    def get_publisher() -> Publisher:
+        if Factory.publisher is None:
+            publishing_thread_pool = ThreadPoolExecutor(max_workers=config.get_publisher()['publisher_max_threads'])
+            Factory.publisher = DynamicImporter(config.get_publisher()[MODULE_KEY],
+                                                config.get_publisher()[CLASS_KEY],
+                                                connection=Factory.get_connection(),
+                                                publisher_thread_pool=publishing_thread_pool).instance
+            return Factory.publisher
+        else:
+            return Factory.publisher
+
+    @staticmethod
+    def get_default_error_handler():
+        return ErrorHandler(Factory.get_publisher()).handle_error
+
+    @staticmethod
     def get_configuration():
         return config
 
     @staticmethod
     def get_default_naming_strategy() -> SchemaNamingStrategy:
-        return SensorBasedSchemaNamingStrategy(prefix='', suffix='')
+        return SensorBasedSchemaNamingStrategy()

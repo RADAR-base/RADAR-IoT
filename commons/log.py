@@ -2,7 +2,8 @@ import logging
 
 
 def setup_custom_logger(name, level):
-    formatter = logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
+    formatter = logging.Formatter(
+        fmt='%(asctime)s - %(levelname)s - %(filename)s: %(module)s: %(funcName)s : %(lineno)d - %(message)s')
 
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)

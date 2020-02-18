@@ -1,6 +1,9 @@
 matrix:
   include:
     - dist: bionic
+      arch:
+        - arm64
+      os: linux
       language: python
       python:
         - "3.7.1"
@@ -8,19 +11,23 @@ matrix:
       services:
         - redis-server
 
-      env:
-        - radar_iot_travis: True
-
       # command to install dependencies
       install:
-        - pip3 install -r requirements.txt
+        - sudo apt-get install -y lsb-release build-essential
+        - sudo pip3 install -r requirements.txt
         - cp travis/config.yaml.template config.yaml
+        - "sed -i 's|token:.*|token: '${GITHUB_TOKEN}'|g' config.yaml"
+        - cat config.yaml
 
       script:
         # Run the test for 200 seconds.
-        - python3 test_runner.py 200
+        - sudo python3 test_runner.py 200
 
-    - language: java
+    - arch:
+        - arm64
+      os: linux
+
+      language: java
       jdk:
         - openjdk8
 
@@ -41,14 +48,18 @@ matrix:
           - $HOME/.gradle/wrapper/
 
       before_install:
-        - sudo rm /usr/local/bin/docker-compose
-        - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
-        - chmod +x docker-compose
-        - sudo mv docker-compose /usr/local/bin
-        - docker-compose -f data/kotlin/docker/docker-compose.yml -f data/kotlin/docker/influxdb.yml up -d
+        - sudo apt-get install -y libffi-dev libssl-dev
+        - sudo apt-get install -y python python-pip
+        - sudo apt-get remove python-configparser
+        - sudo apt-get install -y screen
+        - sudo pip install docker-compose
+        - sudo mkdir -p /usr/local/radar/iot
+        - cd data/kotlin/docker
+        - cp etc/env.template .env
+        - docker-compose -f docker-compose.yml -f influxdb.yml up -d
         # Wait for services to start up.
         - sleep 50
-        - cd data/kotlin/data-uploader
+        - cd ../data-uploader
 
       # command to install dependencies
       install:

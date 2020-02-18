@@ -4,11 +4,17 @@ radarConfig:
   userId: "sub-1"
   sourceId: "03d28e5c-e005-46d4-a9b3-279c27fbbc83"
   baseUrl: "http://localhost:8081"
-  oAuthClientId: "radar_iot"
+  oAuthClientId: "radar-iot"
   oAuthClientSecret: "secret"
   metaToken: "dlsLwIw0E1cP"
   schemaRegistryUrl: "http://localhost:8084/"
   kafkaUrl: "http://localhost:8090/radar-gateway/"
+
+redisProperties:
+  host: redis
+  port: 6379
+  timeOut: 2000
+  password:
 
 # If a converter is not specified for a particular consumer for a sensor,
 # then the data from the sensor will not be forwarded to that consumer for processing
@@ -27,12 +33,22 @@ sensorConfigs:
     converterClasses:
       - consumerName: "rest_proxy"
         converterClass: "org.radarbase.iot.converter.avro.coralenviro.CoralEnviroTemperatureConverter"
+  - sensorName: "grovepi-air-quality"
+    inputTopic: "data-stream/sensors/grovepi-air-quality"
+    outputTopic: "grove_pi_air_quality"
+    converterClasses:
+      - consumerName: "rest_proxy"
+        converterClass: "org.radarbase.iot.converter.avro.grovepi.AirQualityAvroConverter"
+      - consumerName: "influx_db"
+        converterClass: "org.radarbase.iot.converter.influxdb.grovepi.AirQualitySensorInfluxDbConverter"
   - sensorName: "mock"
     inputTopic: "data-stream/sensors/mock"
     outputTopic: "mock"
     converterClasses:
       - consumerName: "rest_proxy"
         converterClass: "org.radarbase.iot.converter.avro.coralenviro.CoralEnviroTemperatureConverter"
+      - consumerName: "influx_db"
+        converterClass: "org.radarbase.iot.converter.influxdb.coralenviro.CoralEnviroHumidityInfluxDbConverter"
 
 dataConsumerConfigs:
   - consumerClass: "org.radarbase.iot.consumer.RestProxyDataConsumer"

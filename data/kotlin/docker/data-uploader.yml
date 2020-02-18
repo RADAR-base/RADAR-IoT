@@ -1,0 +1,30 @@
+version: '2.4'
+
+networks:
+  redis:
+    external: true
+
+volumes:
+  nitrite-db: {}
+
+services:
+  data-uploader:
+    build: ../
+    image: radarbase/radar-iot-datauploader:latest
+    networks:
+      - redis
+    depends_on:
+      - redis
+    environment:
+      RADAR_IOT_CONFIG_LOCATION: '/usr/local/etc/radar/iot/radar_iot_config.yaml'
+    volumes:
+      - "./etc/data-uploader/radar_iot_config.yaml:/usr/local/etc/radar/iot/radar_iot_config.yaml:ro"
+      - "nitrite-db:/usr/local/radar/iot"
+
+  redis:
+    image: arm32v7/redis:5.0.5-alpine
+    networks:
+      - default
+      - redis
+    ports:
+      - '6379:6379'

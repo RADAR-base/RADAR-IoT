@@ -21,8 +21,8 @@ class AvroSchemaRetriever(SchemaRetriever):
 
     def __init__(self, **kwargs):
         self.cached_schemas = self.get_all_schemas()
-        from config import ConfigHelper
-        self.schema_naming_strategy = ConfigHelper.get_default_naming_strategy()
+        from config import Factory
+        self.schema_naming_strategy = Factory.get_default_naming_strategy()
         logger.debug(f'Using the schemas: {self.cached_schemas.items()}')
         super().__init__()
 
@@ -45,9 +45,9 @@ class AvroSchemaRetriever(SchemaRetriever):
 
 class FileAvroSchemaRetriever(AvroSchemaRetriever):
     def __init__(self, **kwargs):
-        self.filepath = kwargs['kwargs']['filepath']
-        self.extension = kwargs['kwargs']['extension']
-        super().__init__(**kwargs)
+        self.filepath = kwargs.get('filepath')
+        self.extension = kwargs.get('extension')
+        super().__init__()
 
     def get_all_schemas(self, **kwargs) -> ExpiringDict:
         import os
@@ -71,32 +71,57 @@ class FileAvroSchemaRetriever(AvroSchemaRetriever):
 
 class SchemaRegistrySchemaRetriever(AvroSchemaRetriever):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        try:
+            self.schema_registry_url = kwargs.get('schema_registry_url')
+        except KeyError:
+            raise AttributeError('schema_registry_url needed to use the this schema retriever. Please configure it.')
+        super().__init__()
 
     def get_all_schemas(self, **kwargs) -> ExpiringDict:
-        return dict()
+        schemas = ExpiringDict(max_len=200, max_age_seconds=86400)
+        logger.info(f'Loading schemas from Schema registry at {self.schema_registry_url}')
+        import requests as req
+        schema_names = req.get(f'{self.schema_registry_url}/subjects').json()
+        for schema in schema_names:
+            if '-key' not in schema and 'org.radarcns.stream' not in schema:
+                schemas[schema] = parse_schema(
+                    loads(req.get(f'{self.schema_registry_url}/subjects/{schema}/versions/latest').json()['schema']))
+
+        return schemas
+
+    def get_schema(self, schema_name=None, **kwargs):
+        import requests as req
+        try:
+            return parse_schema(
+                loads(req.get(f'{self.schema_registry_url}/subjects/{schema_name}/versions/latest').json()['schema']))
+        except:
+            # If cannot get directly from schema registry, try getting it from the cache. The cache is updated daily.
+            return super().get_schema(schema_name)
 
 
 class GithubAvroSchemaRetriever(AvroSchemaRetriever):
 
     def __init__(self, **kwargs):
         from github3 import login, GitHub
-        self.repo_owner = kwargs['kwargs']['repo_owner']
-        self.repo_name = kwargs['kwargs']['repo_name']
-        self.branch = kwargs['kwargs']['branch']
-        self.base_path = kwargs['kwargs']['basepath']
-        self.extension = kwargs['kwargs']['extension']
+        self.repo_owner = kwargs.get('repo_owner')
+        self.repo_name = kwargs.get('repo_name')
+        self.branch = kwargs.get('branch')
+        self.base_path = kwargs.get('basepath')
+        self.extension = kwargs.get('extension')
 
-        try:
-            self.git_user = kwargs['kwargs']['git_user']
-            self.git_password = kwargs['kwargs']['git_password']
+        if 'git_user' in kwargs and 'git_password' in kwargs:
+            self.git_user = kwargs.get('git_user')
+            self.git_password = kwargs.get('git_password')
             self.git = login(self.git_user, self.git_password)
-        except KeyError:
+        elif 'token' in kwargs:
+            self.token = kwargs.get('token')
+            self.git = login(token=self.token)
+        else:
             self.git_user = None
             self.git_password = None
             self.git = GitHub()
 
-        super().__init__(**kwargs)
+        super().__init__()
 
     def get_all_schemas(self, **kwargs) -> ExpiringDict:
         repo = self.git.repository(self.repo_owner, self.repo_name)
@@ -127,6 +152,17 @@ class SchemaNamingStrategy(ABC):
         pass
 
 
+class SchemaRegistryBasedSchemaNamingStrategy(SchemaNamingStrategy):
+    def __init__(self):
+        super().__init__()
+
+    def get_schema_name(self, **kwargs):
+        if 'topic' in kwargs.keys():
+            return f'{kwargs.get("topic")}-value'
+        if 'name' in kwargs.keys():
+            return f'{kwargs.get("name")}-value'
+
+
 class SensorBasedSchemaNamingStrategy(SchemaNamingStrategy):
     def __init__(self, prefix='', suffix=''):
         self.prefix = prefix
@@ -134,8 +170,8 @@ class SensorBasedSchemaNamingStrategy(SchemaNamingStrategy):
         super().__init__()
 
     def get_schema_name(self, **kwargs):
-        if 'name' in kwargs:
-            return f'{self.prefix}{kwargs["name"]}{self.suffix}'
+        if 'name' in kwargs.keys():
+            return f'{self.prefix}{kwargs.get("name")}{self.suffix}'
 
-        if 'topic' in kwargs:
-            return f'{self.prefix}{kwargs["topic"]}{self.suffix}'
+        if 'topic' in kwargs.keys():
+            return f'{self.prefix}{kwargs.get("topic")}{self.suffix}'

@@ -65,10 +65,9 @@ open class RestProxyDataConsumer : DataConsumer<AvroConverter<*, *>> {
                 ),
                 oAuthStateStore = PersistentOAuthStateStore(nitriteProperties),
                 sourceId = CONFIGURATION.radarConfig.sourceId,
-                // TODO: Change these to the correct ones
-                sourceTypeModel = "E4",
-                sourceTypeProducer = "Empatica",
-                sourceTypeCatalogVersion = "v1"
+                sourceTypeModel = "RADAR-IoT",
+                sourceTypeProducer = "RADAR",
+                sourceTypeCatalogVersion = "1.0.0"
             ),
             schemaUrl = CONFIGURATION.radarConfig.schemaRegistryUrl,
             kafkaUrl = CONFIGURATION.radarConfig.kafkaUrl
