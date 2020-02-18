@@ -1,4 +1,5 @@
 import logging
+import math
 from abc import ABC
 from datetime import datetime
 from threading import RLock
@@ -11,6 +12,7 @@ from sensors import Sensor
 
 logger = logging.getLogger('root')
 
+# A global lock for accessing the GrovePi
 grovepi_lock: RLock = RLock()
 
 
@@ -46,10 +48,14 @@ class GrovePiSensor(Sensor, ABC):
 class AirQualitySensor(GrovePiSensor):
     # http://wiki.seeedstudio.com/Grove-Air_Quality_Sensor_v1.3/
 
-    def __init__(self, name, topic, poll_freq_ms, flush_size, flush_after_s):
+    def __init__(self, name, topic, poll_freq_ms, flush_size, flush_after_s, **kwargs):
         # Connect the Grove Air Quality Sensor to analog port A0
         # SIG,NC,VCC,GND
-        self.air_sensor = 0
+        if 'port' in kwargs:
+            self.air_sensor = int(kwargs.get('port'))
+        else:
+            self.air_sensor = 0
+
         with grovepi_lock:
             grovepi.pinMode(self.air_sensor, "INPUT")
         super().__init__(name, topic, poll_freq_ms, flush_size, flush_after_s)
@@ -72,4 +78,77 @@ class AirQualitySensor(GrovePiSensor):
                             errors=None)
         except IOError as exc:
             return Response(response=None,
-                            errors=[IoTError('IOError', ErrorCode.UNKNOWN, exc.__cause__, exc.__traceback__)])
+                            errors=[get_error_from_exc(exc)])
+
+
+class DustSensor(GrovePiSensor):
+    # USAGE - https://seeeddoc.github.io/Grove-Dust_Sensor/
+    #
+    # Connect the dust sensor to Port D2 on the GrovePi. The dust sensor only works on that port
+    # The dust sensor takes 30 seconds to update the new values
+    #
+    # It returns the LPO time, the percentage (LPO time divided by total period, in this case being 30000 ms)
+    # and the concentration in pcs/0.01cf
+
+    import atexit
+
+    def __init__(self, name, topic, poll_freq_ms, flush_size, flush_after_s):
+        # default pin is 2 and default update period is 30000 ms
+        with grovepi_lock:
+            grovepi.dust_sensor_en()
+        super().__init__(name, topic, poll_freq_ms, flush_size, flush_after_s)
+
+    def get_measurement(self) -> Response:
+        try:
+            values = grovepi.dust_sensor_read()
+            lpo_time = values[0]
+            percent_lpo = values[1]
+            pcs_per_0_1cf = values[2]
+
+            return Response({'time': datetime.now().timestamp(), 'LPOValue': lpo_time, 'percentLPO': percent_lpo,
+                             'pcsPer0.1cf': pcs_per_0_1cf}, errors=None)
+        except IOError as exc:
+            return Response(response=None,
+                            errors=[get_error_from_exc(exc)])
+
+    @atexit.register
+    def disable_dust_sensor(self):
+        """
+        Register to disable interrupts for the dust sensor on exit of the application.
+        :return: None
+        """
+        with grovepi_lock:
+            grovepi.dust_sensor_dis()
+
+
+def get_error_from_exc(exc: BaseException):
+    return IoTError(exc.__class__.__name__, ErrorCode.UNKNOWN, str(exc.__cause__), str(exc.__traceback__))
+
+
+class TemperatureAndHumiditySensor(GrovePiSensor):
+    # http://wiki.seeedstudio.com/Grove-TemperatureAndHumidity_Sensor/
+    # Connect the Grove Temperature & Humidity Sensor (or Pro) to digital port D4
+    # This example uses the blue colored sensor.
+    # SIG,NC,VCC,GND
+
+    def __init__(self, name, topic, poll_freq_ms, flush_size, flush_after_s, **kwargs):
+        if 'port' in kwargs:
+            self.sensor = int(kwargs.get('port'))
+        else:
+            self.sensor = 4  # The Sensor goes on digital port 4.
+
+        # temp_humidity_sensor_type
+        # Grove Base Kit comes with the blue sensor.
+        self.blue = 0  # The Blue colored sensor. Grove Temp & Humidity Sensor
+        self.white = 1  # The White colored sensor. Grove Temp & Humidity Sensor Pro
+
+        super().__init__(name, topic, poll_freq_ms, flush_size, flush_after_s)
+
+    def get_measurement(self) -> Response:
+        try:
+            [temp, humidity] = grovepi.dht(self.sensor, self.blue)
+            if not math.isnan(temp) and not math.isnan(humidity):
+                return Response({'time': datetime.now().timestamp(), 'temperature': temp, 'humidity': humidity},
+                                errors=None)
+        except IOError as exc:
+            return Response(response=None, errors=get_error_from_exc(exc))
