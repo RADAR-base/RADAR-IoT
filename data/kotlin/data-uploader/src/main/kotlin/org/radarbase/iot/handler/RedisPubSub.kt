@@ -36,6 +36,8 @@ class RedisPubSub(private val consumerAndConverterManager: ConsumerAndConverterM
                             .converterForChannelAndConsumer(channel!!, consumerName)
                     )
                 } catch (exc: NoSuchElementException) {
+                    // TODO Maybe preempt this case as this could reduce performance as called
+                    //  every time a message is received.
                     // No op as this consumer may not be registered on this channel and hence no
                     // converter found.
                 }

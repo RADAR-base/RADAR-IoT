@@ -26,6 +26,8 @@ services:
     image: grafana/grafana
     networks:
       - db
+      # For adding plugin via internet
+      - default
     volumes:
       - "grafana-storage:/var/lib/grafana"
     environment:
