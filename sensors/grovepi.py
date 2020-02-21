@@ -16,6 +16,10 @@ logger = logging.getLogger('root')
 grovepi_lock: RLock = RLock()
 
 
+def get_error_from_exc(exc: BaseException):
+    return IoTError(exc.__class__.__name__, ErrorCode.UNKNOWN, str(exc.__cause__), str(exc.__traceback__))
+
+
 class GrovePiSensor(Sensor, ABC):
     """The base class for requesting data from any sensors connected vai the Grove Pi hat.
     The GrovePi Python library is not Thread-Safe and this ensures that any sensor that queries the grovepi should first
@@ -121,10 +125,6 @@ class DustSensor(GrovePiSensor):
             grovepi.dust_sensor_dis()
 
 
-def get_error_from_exc(exc: BaseException):
-    return IoTError(exc.__class__.__name__, ErrorCode.UNKNOWN, str(exc.__cause__), str(exc.__traceback__))
-
-
 class TemperatureAndHumiditySensor(GrovePiSensor):
     # http://wiki.seeedstudio.com/Grove-TemperatureAndHumidity_Sensor/
     # Connect the Grove Temperature & Humidity Sensor (or Pro) to digital port D4
@@ -149,6 +149,35 @@ class TemperatureAndHumiditySensor(GrovePiSensor):
             [temp, humidity] = grovepi.dht(self.sensor, self.blue)
             if not math.isnan(temp) and not math.isnan(humidity):
                 return Response({'time': datetime.now().timestamp(), 'temperature': temp, 'humidity': humidity},
+                                errors=None)
+        except IOError as exc:
+            return Response(response=None, errors=get_error_from_exc(exc))
+
+
+class PIRMotionSensor(GrovePiSensor):
+    # http://wiki.seeedstudio.com/Grove-PIR_Motion_Sensor/
+    # Connect the Grove PIR Motion Sensor to digital port D8
+    # SIG,NC,VCC,GND
+
+    def __init__(self, name, topic, poll_freq_ms, flush_size, flush_after_s, **kwargs):
+        if 'port' in kwargs:
+            self.sensor = int(kwargs.get('port'))
+        else:
+            self.sensor = 8  # The Sensor goes on digital port 8.
+
+        with grovepi_lock:
+            grovepi.pinMode(self.sensor, "INPUT")
+
+        super().__init__(name, topic, poll_freq_ms, flush_size, flush_after_s)
+
+    def get_measurement(self) -> Response:
+        try:
+            # Sense motion, usually human, within the target range
+            if grovepi.digitalRead(self.sensor):
+                return Response({'time': datetime.now().timestamp(), 'value': 1, 'motion': 'Motion Detected'},
+                                errors=None)
+            else:
+                return Response({'time': datetime.now().timestamp(), 'value': 0, 'motion': 'No Motion Detected'},
                                 errors=None)
         except IOError as exc:
             return Response(response=None, errors=get_error_from_exc(exc))
