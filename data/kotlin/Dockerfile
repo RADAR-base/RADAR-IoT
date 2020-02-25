@@ -1,8 +1,8 @@
 FROM gradle:5.4-jdk8-alpine as builder
 USER root
-WORKDIR /builder
 ADD . /builder
-RUN gradle shadowJar --stacktrace --no-daemon
+WORKDIR /builder
+RUN ./gradlew shadowJar --stacktrace --no-daemon
 
 FROM openjdk:8-jre-alpine
 

@@ -27,8 +27,25 @@ RUN sudo python3 -m pip install numpy-1.18.1-cp37-cp37m-linux_armv7l.whl
 RUN curl -o scipy-1.3.3-cp37-cp37m-linux_armv7l.whl https://www.piwheels.org/simple/scipy/scipy-1.3.3-cp37-cp37m-linux_armv7l.whl#sha256=edda366fda13cfad10c3cf58341297f0ff1255020076a247ce50e594b42849d0
 RUN sudo python3 -m pip install scipy-1.3.3-cp37-cp37m-linux_armv7l.whl
 
+RUN curl -o anyconfig-0.9.9-py2.py3-none-any.whl https://www.piwheels.org/simple/anyconfig/anyconfig-0.9.9-py2.py3-none-any.whl#sha256=5edcf98a352d34b8ca2e540b5ce9e6f0beef92b3feb431c9e61570c6f857f57b
+RUN sudo python3 -m pip install anyconfig-0.9.9-py2.py3-none-any.whl
+
+RUN curl -o fastavro-0.22.10-cp37-cp37m-linux_armv7l.whl https://www.piwheels.org/simple/fastavro/fastavro-0.22.10-cp37-cp37m-linux_armv7l.whl#sha256=11e4d2fa9fe8051310f753cf15dd039bb61d2bfdf5cb563f273b443da18cec39
+RUN sudo python3 -m pip install fastavro-0.22.10-cp37-cp37m-linux_armv7l.whl
+
+RUN curl -o cffi-1.14.0-cp37-cp37m-linux_armv7l.whl https://www.piwheels.org/simple/cffi/cffi-1.14.0-cp37-cp37m-linux_armv7l.whl#sha256=886886958997f92ac3b478532cd36384965dcff2dacdcc3ff304c894a44a63b5
+RUN sudo python3 -m pip install cffi-1.14.0-cp37-cp37m-linux_armv7l.whl
+
+RUN curl -o cryptography-2.8-cp37-cp37m-linux_armv7l.whl https://www.piwheels.org/simple/cryptography/cryptography-2.8-cp37-cp37m-linux_armv7l.whl#sha256=493031de65cec3a47cc0ab779693f25406932232ffe5cac707c65f99e09b5063
+RUN sudo python3 -m pip install cryptography-2.8-cp37-cp37m-linux_armv7l.whl
+
+RUN curl -o pyrsistent-0.15.7-cp37-cp37m-linux_armv7l.whl https://www.piwheels.org/simple/pyrsistent/pyrsistent-0.15.7-cp37-cp37m-linux_armv7l.whl#sha256=9a4120145e7ea863ff3d5eeb577ea76fa38f68b18e490bd177b363b139da7f39
+RUN sudo python3 -m pip install pyrsistent-0.15.7-cp37-cp37m-linux_armv7l.whl
+
+RUN sudo mkdir -p /home/pi/
+
 # Create a new user called pi with sudo privileges (simulating raspbian)
-RUN useradd -m pi && echo "pi:pi" | chpasswd && adduser pi sudo
+RUN useradd -o -u 0 -g 0 -N -d /home/pi/ -M pi && echo "pi:pi" | chpasswd && adduser pi sudo
 RUN echo "pi     ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 USER pi
 
