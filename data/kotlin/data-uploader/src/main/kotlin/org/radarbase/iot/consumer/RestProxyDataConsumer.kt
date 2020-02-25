@@ -4,12 +4,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.apache.avro.SchemaValidationException
-import org.radarbase.config.ServerConfig
 import org.radarbase.data.RecordData
-import org.radarbase.iot.commons.auth.ManagementPortalAuthorizer
-import org.radarbase.iot.commons.auth.MetaTokenLoginStrategy
-import org.radarbase.iot.commons.auth.PersistentOAuthStateStore
-import org.radarbase.iot.commons.managementportal.ManagementPortalClient
 import org.radarbase.iot.config.Configuration.Companion.CONFIGURATION
 import org.radarbase.iot.converter.avro.AvroConverter
 import org.radarbase.iot.sender.KafkaAvroDataSender
@@ -31,44 +26,9 @@ open class RestProxyDataConsumer : DataConsumer<AvroConverter<*, *>> {
         uploadIntervalSeconds: Int,
         maxCacheSize: Int
     ) : super(uploadIntervalSeconds, maxCacheSize) {
-        val managementPortalPath = ""
-
-        val managementPortalClient = ManagementPortalClient(
-            clientId = CONFIGURATION.radarConfig.oAuthClientId,
-            clientSecret = CONFIGURATION.radarConfig.oAuthClientSecret,
-            managementPortal = ServerConfig(
-                "${CONFIGURATION.radarConfig
-                    .baseUrl}/${managementPortalPath}"
-            )
-        )
-
-        val nitriteProperties =
-            CONFIGURATION.persistenceStoreproperties ?: PersistentOAuthStateStore.NitriteProperties(
-                filePath = "/usr/local/radar/iot/oauthStore",
-                username = null,
-                password = null
-            )
-
-        val metaTokenUrl = "${CONFIGURATION.radarConfig
-            .baseUrl}/${managementPortalPath}/api/meta-token/${CONFIGURATION.radarConfig.metaToken
-            .orEmpty()}"
-
-        logger.info("Meta token URL is: $metaTokenUrl")
 
         this.kafkaDataSender = KafkaAvroDataSender(
-            authorizer = ManagementPortalAuthorizer(
-                userId = CONFIGURATION.radarConfig.userId,
-                managementPortalClient = managementPortalClient,
-                loginStrategy = MetaTokenLoginStrategy(
-                    metaTokenUrl,
-                    managementPortalClient
-                ),
-                oAuthStateStore = PersistentOAuthStateStore(nitriteProperties),
-                sourceId = CONFIGURATION.radarConfig.sourceId,
-                sourceTypeModel = "RADAR-IoT",
-                sourceTypeProducer = "RADAR",
-                sourceTypeCatalogVersion = "1.0.0"
-            ),
+            authorizer = null,
             schemaUrl = CONFIGURATION.radarConfig.schemaRegistryUrl,
             kafkaUrl = CONFIGURATION.radarConfig.kafkaUrl
         )

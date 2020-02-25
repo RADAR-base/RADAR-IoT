@@ -33,17 +33,20 @@ data class Configuration(
         val userId: String,
         val sourceId: String,
         val baseUrl: String,
-        val oAuthClientId: String,
-        val oAuthClientSecret: String,
+        val oAuthClientId: String?,
+        val oAuthClientSecret: String?,
         val metaToken: String?,
         val schemaRegistryUrl: String = "$baseUrl/schema",
-        val kafkaUrl: String = "$baseUrl/kafka"
+        val kafkaUrl: String = "$baseUrl/kafka",
+        val sourceTypeModel: String = "RADAR-IoT",
+        val sourceTypeProducer: String = "RADAR",
+        val sourceTypeCatalogVersion: String = "1.0.0"
     )
 
     data class SensorConfig(
         val sensorName: String,
         val inputTopic: String,
-        val outputTopic: String,
+        val outputTopic: String?,
         val converterClasses: List<Converters>
     )
 

@@ -21,11 +21,11 @@ def get_error_from_exc(exc: BaseException):
 
 
 class GrovePiSensor(Sensor, ABC):
-    """The base class for requesting data from any sensors connected vai the Grove Pi hat.
+    """The base class for requesting data from any sensors connected via the Grove Pi hat.
     The GrovePi Python library is not Thread-Safe and this ensures that any sensor that queries the grovepi should first
     acquire the Lock to prevent concurrent access.
 
-    Some other configs necessary to get the GrovePi to work better on Raspberry Pi 4(although could apply to other
+    Some other configs necessary to get the GrovePi to work better on Raspberry Pi 4(although should apply to other
     Raspberry pi models too)-
 
     1. Turn off the One-wire Interface (1-W). This interferes with the grovepi and could make it unresponsive.
