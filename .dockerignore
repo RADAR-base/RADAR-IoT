@@ -1,9 +1,3 @@
-# Remove kotlin library
-data
-
-# remove gradle files
-.gradle
-
 # ignore IDEA files
 .idea
 
