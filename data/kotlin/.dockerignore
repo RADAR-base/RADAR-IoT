@@ -1,5 +1,5 @@
 # gradle files
-**.gradle
+.gradle
 
 # IDEA files
 **/.idea
