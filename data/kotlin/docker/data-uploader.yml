@@ -9,7 +9,9 @@ volumes:
 
 services:
   data-uploader:
-    build: ../
+    build:
+      context: ../../..
+      dockerfile: data/kotlin/Dockerfile
     image: radarbase/radar-iot-datauploader:latest
     networks:
       - redis
