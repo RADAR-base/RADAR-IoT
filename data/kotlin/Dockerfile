@@ -1,6 +1,11 @@
 FROM openjdk:8 as builder
 
 RUN mkdir /builder
+
+# Temporary test code to check directory structure
+COPY . /builder
+RUN ls -alh /builder
+
 COPY ./gradle/wrapper /builder/gradle/wrapper
 COPY ./gradlew /builder/gradlew
 COPY ./build.gradle /builder/build.gradle
