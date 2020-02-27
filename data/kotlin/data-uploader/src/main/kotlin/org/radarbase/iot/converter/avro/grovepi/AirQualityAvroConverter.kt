@@ -44,6 +44,5 @@ class AirQualityAvroConverter(
         private val logger = LoggerFactory.getLogger(AirQualityAvroConverter::class.java)
 
         private val typeReference = object : TypeReference<List<GrovePiAirQualitySensor>>() {}
-
     }
 }

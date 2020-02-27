@@ -26,7 +26,7 @@ class RedisPubSub(private val consumerAndConverterManager: ConsumerAndConverterM
 
     override fun onMessage(channel: String?, message: String?) {
         super.onMessage(channel, message)
-        logger.debug("Received message: [${message}] from channel: [${channel}]")
+        logger.debug("Received message: [$message] from channel: [$channel]")
         // Forward the message to all the dataConsumers by launching a coroutine
         GlobalScope.launch(RedisDataHandler.exceptionHandler) {
             consumerAndConverterManager.dataConsumerNameMap.forEach { (consumerName, consumer) ->
