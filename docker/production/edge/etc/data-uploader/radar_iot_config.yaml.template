@@ -1,0 +1,49 @@
+# make sure these values are exactly as in Management portal for using authorisation
+radarConfig:
+  projectId: "radar"
+  userId: "sub-1"
+  sourceId: "03d28e5c-e005-46d4-a9b3-279c27fbbc83"
+  baseUrl: "http://<your-server>:8081"
+  oAuthClientId: "radar-iot"
+  oAuthClientSecret: "secret"
+  metaToken: "dlsLwIw0E1cP"
+  schemaRegistryUrl: "http://<your-server>/schema"
+  kafkaUrl: "http://<your-server>/kafka"
+
+redisProperties:
+  host: redis
+  port: 6379
+  timeOut: 2000
+  password:
+
+# If a converter is not specified for a particular consumer for a sensor,
+# then the data from the sensor will not be forwarded to that consumer for processing
+sensorConfigs:
+  - sensorName: "mock"
+    inputTopic: "data-stream/sensors/mock"
+    outputTopic: "mock"
+    converterClasses:
+      - consumerName: "rest_proxy"
+        converterClass: "org.radarbase.iot.converter.avro.coralenviro.CoralEnviroTemperatureConverter"
+      - consumerName: "influx_db"
+        converterClass: "org.radarbase.iot.converter.influxdb.coralenviro.CoralEnviroHumidityInfluxDbConverter"
+
+dataConsumerConfigs:
+  - consumerClass: "org.radarbase.iot.consumer.RestProxyDataConsumer"
+    maxCacheSize: "1000"
+    uploadIntervalSeconds: "10"
+    consumerName: "rest_proxy"
+  - consumerClass: "org.radarbase.iot.consumer.InfluxDbDataConsumer"
+    maxCacheSize: "1000"
+    uploadIntervalSeconds: "10"
+    consumerName: "influx_db"
+
+influxDbConfig:
+  url: "http://<your-server>:8086"
+  username: "root"
+  password: "root"
+  dbName: "radarIot"
+  retentionPolicyName: "radarIotRetentionPolicy"
+  # Should be at least 1h
+  retentionPolicyDuration: "1h"
+  retentionPolicyReplicationFactor: 1

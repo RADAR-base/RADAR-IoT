@@ -1,5 +1,8 @@
-FROM arm32v7/alpine:3.11.3 AS builder
-RUN apk add --no-cache curl=7.68.0
+FROM alpine:3.11.3 AS builder
+RUN apk add --no-cache curl=7.67.0-r0
+
+RUN set -o pipefail
+# Download Qemu for making it support builds across multi-arch
 RUN curl -L https://github.com/balena-io/qemu/releases/download/v3.0.0%2Bresin/qemu-3.0.0+resin-arm.tar.gz | tar zxvf - -C . && mv qemu-3.0.0+resin-arm/qemu-arm-static .
 
 FROM arm32v7/python:3.7-slim-buster
