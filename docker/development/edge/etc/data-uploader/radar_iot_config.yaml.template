@@ -7,7 +7,7 @@ radarConfig:
   oAuthClientId: "radar-iot"
   oAuthClientSecret: "secret"
   metaToken: "dlsLwIw0E1cP"
-  schemaRegistryUrl: "http://localhost:8084/"
+  schemaRegistryUrl: "http://localhost:8083/"
   kafkaUrl: "http://localhost:8090/radar-gateway/"
 
 redisProperties:

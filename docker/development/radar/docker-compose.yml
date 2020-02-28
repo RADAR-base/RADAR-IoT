@@ -128,7 +128,7 @@ services:
       - kafka-3
     restart: always
     ports:
-      - "8084:8081"
+      - "8083:8081"
     environment:
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181
       SCHEMA_REGISTRY_HOST_NAME: schema-registry-1
@@ -167,7 +167,7 @@ services:
   # Management Portal                                                         #
   #---------------------------------------------------------------------------#
   managementportal:
-    image: radarbase/management-portal:0.5.6
+    image: radarbase/management-portal:0.5.7
     networks:
       - kafka
       - default

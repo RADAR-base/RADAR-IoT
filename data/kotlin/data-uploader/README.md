@@ -5,7 +5,7 @@ The application consumes data from channels in a pub/sub system and can consume 
 ## Terminology
 These are the explanation of the main terms used in the context of this application - 
 
-1. `Handler` - This is used for Handling data coming in from the pub/sub system. This is also responsible for subscribing to the topics/channels of the pub/sub system. It usually forwards data to the `DataConsumer`s.
+1. `Handler` - This is used for Handling data coming in from the pub/sub system. It usually proxies data from the pub/sub and forwards data to the `DataConsumer`s.
 2. `Consumer` or `DataConsumer` - These are the components that handle the actual processing of the data that is received from the `Handler`s.
 3. `Converter` - These are used to convert the message from one format to another. So that data can be read from the pub/sub system and sent/processed by the destination system(for DataConsumers). Hence these are specific to a particular sensor for a particular consumer. One implementation of a converter can be - deserializing a message received in JSON format from the pub/sub system and serializing it to AVRO format for uploading to kafka.
 4. `Connection` - Connection represents a connection to a external entity (like pub/sub system or a destination entity like influxdb).
@@ -15,7 +15,7 @@ Configuration files can be added to classpath or it's location can be defined by
 An example file can be found in [radar_iot_config.yaml](./radar_iot_config.yaml.template).
 
 ## Usage
-This can be run as a normal jvm application by running the main class `org.radarbase.iot.DataUploaderApplication.kt`
+This can be run as a normal jvm application by running the main class `org.radarbase.iot.DataUploaderApplication.kt` or using gradle wrapper with `./gradlew run`.
 
 ## Docker
 

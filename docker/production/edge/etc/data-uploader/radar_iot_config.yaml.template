@@ -3,7 +3,7 @@ radarConfig:
   projectId: "radar"
   userId: "sub-1"
   sourceId: "03d28e5c-e005-46d4-a9b3-279c27fbbc83"
-  baseUrl: "http://<your-server>:8081"
+  baseUrl: "http://<your-server>/"
   oAuthClientId: "radar-iot"
   oAuthClientSecret: "secret"
   metaToken: "dlsLwIw0E1cP"
@@ -39,7 +39,7 @@ dataConsumerConfigs:
     consumerName: "influx_db"
 
 influxDbConfig:
-  url: "http://<your-server>:8086"
+  url: "http://<your-server>/influxdb"
   username: "root"
   password: "root"
   dbName: "radarIot"
