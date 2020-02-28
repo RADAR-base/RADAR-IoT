@@ -54,12 +54,10 @@ matrix:
         - sudo apt-get install -y screen
         - sudo pip install docker-compose
         - sudo mkdir -p /usr/local/radar/iot
-        - cd data/kotlin/docker
-        - cp etc/env.template .env
-        - docker-compose -f docker-compose.yml -f influxdb.yml up -d
+        - docker-compose -f docker/development/radar/docker-compose.yml -f docker/development/dashboard/docker-compose.yml up -d
         # Wait for services to start up.
         - sleep 50
-        - cd ../data-uploader
+        - cd data/kotlin/data-uploader
 
       # command to install dependencies
       install:
