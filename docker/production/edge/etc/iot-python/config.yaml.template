@@ -1,0 +1,38 @@
+sensors:
+  - name: "mock_sensor"
+    module: "test.mock"
+    class: "MockSensor"
+    publishing_topic: "data-stream/sensors/mock"
+    poll_frequency_ms: 1000
+    flush_size: 10
+    flush_after_s: 1000
+
+publisher:
+  module: 'pubsub.redis_publisher'
+  class: 'RedisPublisher'
+  connection:
+    module: 'pubsub.redis_connection'
+    class: 'RedisConnection'
+    host: 'redis'
+    port: '6379'
+    user: ''
+    password: ''
+  publisher_max_threads: 5
+
+converter:
+  name: 'avro'
+  module: 'commons.message_converter'
+  class: 'AvroValidatedJsonConverter'
+  schema_retriever:
+    module: 'commons.schema'
+    class: 'GithubAvroSchemaRetriever'
+    args:
+      repo_owner: 'RADAR-base'
+      repo_name: 'RADAR-Schemas'
+      branch: 'sensors'
+      basepath: 'commons/iot/sensor'
+      extension: '.avsc'
+
+expose_topic_endpoint: True
+root_logger_level: DEBUG
+scheduler_max_threads: 10

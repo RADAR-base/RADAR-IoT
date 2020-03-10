@@ -1,0 +1,8 @@
+# ignore IDEA files
+.idea
+
+# ignore travis
+travis
+
+# ignore venv
+venv

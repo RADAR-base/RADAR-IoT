@@ -1,8 +1,15 @@
-FROM gradle:5.4-jdk8-alpine as builder
-USER root
+FROM openjdk:8 as builder
+
+RUN mkdir /builder
+
+COPY ./data/kotlin/gradle/wrapper /builder/gradle/wrapper
+COPY ./data/kotlin/gradlew /builder/gradlew
+COPY ./data/kotlin/build.gradle /builder/build.gradle
+COPY ./data/kotlin/settings.gradle /builder/settings.gradle
+COPY ./data/kotlin/commons /builder/commons
+COPY ./data/kotlin/data-uploader /builder/data-uploader
 WORKDIR /builder
-ADD . /builder
-RUN gradle shadowJar --stacktrace --no-daemon
+RUN ./gradlew shadowJar --stacktrace --no-daemon
 
 FROM openjdk:8-jre-alpine
 

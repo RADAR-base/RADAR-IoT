@@ -1,8 +1,8 @@
 # gradle files
-**.gradle
+.gradle
 
 # IDEA files
 **/.idea
 
 # Build Files
-**build
+build

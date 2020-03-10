@@ -72,8 +72,8 @@ class DataProcessor:
             try:
                 topic = args[0]
                 name = args[1]
-            except:
-                raise AttributeError('Cannot process data without name and topic being provided.')
+            except BaseException as be:
+                raise AttributeError(f'Cannot process data without name and topic being provided.{be}')
 
         logger.debug(f'Trying publishing {len(msgs)} messages using {self.__class__.__name__}')
         msgs_ = [msg.response for msg in msgs if isinstance(msg, Response) and msg.response is not None]
