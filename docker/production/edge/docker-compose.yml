@@ -8,11 +8,18 @@ volumes:
   nitrite-db: {}
 
 services:
-  data-uploader:
-    build:
-      context: ../../..
-      dockerfile: data/kotlin/Dockerfile
-    image: radarbase/radar-iot-datauploader:latest
+  radar-iot-python:
+    image: radarbase/radar-iot-edge-python:latest
+    privileged: true
+    networks:
+      - redis
+    depends_on:
+      - redis
+    volumes:
+      - "./etc/iot-python/config.yaml:/source/config.yaml:ro"
+
+  radar-iot-data-uploader:
+    image: radarbase/radar-iot-edge-data-consumer-kotlin:latest
     networks:
       - redis
     depends_on:
