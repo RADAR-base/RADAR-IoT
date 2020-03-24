@@ -4,4 +4,4 @@
 ## Build
 build
 
-**.env
+docker/.env
