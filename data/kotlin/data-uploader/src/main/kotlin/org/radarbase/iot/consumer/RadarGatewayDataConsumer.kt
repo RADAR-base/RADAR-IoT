@@ -24,26 +24,24 @@ open class RadarGatewayDataConsumer : RestProxyDataConsumer {
         uploadIntervalSeconds: Int,
         maxCacheSize: Int
     ) : super(uploadIntervalSeconds, maxCacheSize) {
-        val managementPortalPath = ""
+        val mpUrl = "${CONFIGURATION.radarConfig
+            .baseUrl}/${CONFIGURATION.radarConfig.managementPortalPath}"
 
         val managementPortalClient = ManagementPortalClient(
             clientId = checkNotNull(CONFIGURATION.radarConfig.oAuthClientId),
             clientSecret = checkNotNull(CONFIGURATION.radarConfig.oAuthClientSecret),
-            managementPortal = ServerConfig(
-                "${CONFIGURATION.radarConfig
-                    .baseUrl}/${managementPortalPath}"
-            )
+            managementPortal = ServerConfig(mpUrl)
         )
 
         val nitriteProperties =
-            CONFIGURATION.persistenceStoreproperties ?: PersistentOAuthStateStore.NitriteProperties(
-                filePath = "/usr/local/radar/iot/oauthStore",
-                username = null,
-                password = null
-            )
+            CONFIGURATION.persistenceStoreproperties
+                ?: PersistentOAuthStateStore.NitriteProperties(
+                    filePath = "/usr/local/radar/iot/oauthStore",
+                    username = null,
+                    password = null
+                )
 
-        val metaTokenUrl = "${CONFIGURATION.radarConfig
-            .baseUrl}/${managementPortalPath}/api/meta-token/${checkNotNull(
+        val metaTokenUrl = "${mpUrl}/api/meta-token/${checkNotNull(
             CONFIGURATION.radarConfig
                 .metaToken
         )}"

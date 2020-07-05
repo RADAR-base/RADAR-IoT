@@ -40,7 +40,8 @@ data class Configuration(
         val kafkaUrl: String = "$baseUrl/kafka",
         val sourceTypeModel: String = "RADAR-IoT",
         val sourceTypeProducer: String = "RADAR",
-        val sourceTypeCatalogVersion: String = "1.0.0"
+        val sourceTypeCatalogVersion: String = "1.0.0",
+        val managementPortalPath: String = "managementportal"
     )
 
     data class SensorConfig(
