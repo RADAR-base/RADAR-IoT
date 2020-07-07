@@ -181,3 +181,35 @@ class PIRMotionSensor(GrovePiSensor):
                                 errors=None)
         except IOError as exc:
             return Response(response=None, errors=get_error_from_exc(exc))
+
+
+class LightSensor(GrovePiSensor):
+    # https://wiki.seeedstudio.com/Grove-Light_Sensor/
+
+    def __init__(self, name, topic, poll_freq_ms, flush_size, flush_after_s, **kwargs):
+        # Connect the Grove Light Sensor to analog port A1
+        # SIG,NC,VCC,GND
+        if 'port' in kwargs:
+            self.light_sensor = int(kwargs.get('port'))
+        else:
+            self.light_sensor = 1
+
+        with grovepi_lock:
+            grovepi.pinMode(self.light_sensor, "INPUT")
+        super().__init__(name, topic, poll_freq_ms, flush_size, flush_after_s)
+
+    def get_measurement(self):
+        logger.debug('light sensor sensor data')
+
+        try:
+            # Get sensor value
+            sensor_value = grovepi.analogRead(self.light_sensor)
+
+            # Calculate resistance of sensor in K
+            resistance = float(1023 - sensor_value) * 10 / sensor_value
+
+            return Response({'time': datetime.now().timestamp(), 'value': sensor_value, 'resistance': resistance},
+                            errors=None)
+        except IOError as exc:
+            return Response(response=None,
+                            errors=[get_error_from_exc(exc)])
