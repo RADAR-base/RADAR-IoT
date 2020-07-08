@@ -16,7 +16,7 @@ data class Configuration(
     val radarConfig: RadarConfig,
     val sensorConfigs: List<SensorConfig>,
     val dataConsumerConfigs: List<DataConsumerConfig>,
-    val redisProperties: RedisConnectionProperties?,
+    val redisProperties: RedisConnectionProperties = RedisConnectionProperties(),
     val persistenceStoreproperties: PersistentOAuthStateStore.NitriteProperties?,
     val influxDbConfig: InfluxDbConfig?
 ) {
