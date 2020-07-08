@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
 class LightSensorInfluxDbConverter(
-    private val measurementName: String = "grovePiTempAndHumidity",
+    private val measurementName: String = "grovePiLight",
     private val parser: Parser<String,
             List<GrovePiLightSensor>> = JsonMessageParser(typeReference)
 ) : InfluxDbConverter {
