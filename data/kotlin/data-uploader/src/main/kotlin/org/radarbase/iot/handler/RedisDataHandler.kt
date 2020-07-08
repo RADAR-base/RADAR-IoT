@@ -1,8 +1,6 @@
 package org.radarbase.iot.handler
 
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.radarbase.iot.commons.exception.ConfigurationException
 import org.radarbase.iot.commons.exception.LogAndContinueExceptionHandler
 import org.radarbase.iot.config.Configuration.Companion.CONFIGURATION
@@ -46,15 +44,11 @@ class RedisDataHandler : Handler {
 
     @Throws(ConfigurationException::class)
     override fun start() {
-        for (sensorConf in CONFIGURATION.sensorConfigs) {
-            GlobalScope.launch(exceptionHandler) {
-                redisSubscriber.subscribe(
-                    sensorConf.inputTopic,
-                    redisPubSub
-                )
-                logger.info("Subscribed to ${sensorConf.inputTopic}")
-            }
-        }
+        val topics = CONFIGURATION.sensorConfigs.map { it.inputTopic }.toTypedArray()
+        redisSubscriber.subscribe(
+            topics,
+            redisPubSub
+        )
     }
 
     override fun stop() {
