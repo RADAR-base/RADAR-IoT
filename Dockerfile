@@ -41,6 +41,9 @@ USER pi
 COPY ./ /source/
 WORKDIR /source/
 
+# Install grove pi library
+RUN [ ${INSTALL_GROVE_PI} = 'True' ] && bash scripts/install_grovepi.sh
+
 # Install requirements for RADAR-IoT
 RUN python3 -m pip install -r requirements.txt
 
