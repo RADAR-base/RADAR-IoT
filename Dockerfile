@@ -1,5 +1,5 @@
 FROM alpine:3.11.3 AS builder
-RUN apk add --no-cache curl=7.67.0-r0
+RUN apk add --no-cache curl=7.67.0-r1
 
 RUN set -o pipefail
 # Download Qemu for making it support builds across multi-arch
@@ -40,9 +40,6 @@ USER pi
 # Copy source from the RADAR-IoT and add the working dir
 COPY ./ /source/
 WORKDIR /source/
-
-# Install grove pi library
-RUN [ ${INSTALL_GROVE_PI} = 'True' ] && bash scripts/install_grovepi.sh
 
 # Install requirements for RADAR-IoT
 RUN python3 -m pip install -r requirements.txt
