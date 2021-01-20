@@ -1,5 +1,5 @@
 FROM alpine:3.11.3 AS builder
-RUN apk add --no-cache curl=7.67.0-r1
+RUN apk add --no-cache curl=7.67.0-r3
 
 RUN set -o pipefail
 # Download Qemu for making it support builds across multi-arch
