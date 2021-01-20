@@ -1,4 +1,4 @@
-FROM openjdk:8 as builder
+FROM openjdk:11.0.1-slim as builder
 
 RUN mkdir /builder
 
@@ -11,7 +11,7 @@ COPY ./data/kotlin/data-uploader /builder/data-uploader
 WORKDIR /builder
 RUN ./gradlew shadowJar --stacktrace --no-daemon
 
-FROM openjdk:8-jre-alpine
+FROM openjdk:11.0.1-jre-slim
 
 COPY --from=builder /builder/data-uploader/build/libs/data-uploader-all.jar app/lib/
 

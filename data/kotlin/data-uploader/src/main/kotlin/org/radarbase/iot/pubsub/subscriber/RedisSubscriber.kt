@@ -11,7 +11,7 @@ class RedisSubscriber(private val conn: RedisConnection) :
         check(conn.isConnected())
     }
 
-    override fun subscribe(channel: String, consumer: JedisPubSub) {
-        conn.getConnection().use { it.subscribe(consumer, channel) }
+    override fun subscribe(channel: Array<String>, consumer: JedisPubSub) {
+        conn.getConnection().use { it.subscribe(consumer, *channel) }
     }
 }

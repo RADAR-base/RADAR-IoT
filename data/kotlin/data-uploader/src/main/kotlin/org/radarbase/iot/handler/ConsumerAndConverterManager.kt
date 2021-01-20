@@ -12,10 +12,8 @@ class ConsumerAndConverterManager(
     private val configuration: Configuration
 ) {
 
-    val dataConsumerNameMap: MutableMap<String, DataConsumer<Converter<*, *>>> =
-        mutableMapOf()
-    val channelConverterMap: MutableMap<String, MutableList<ConsumerConverterMap>> =
-        mutableMapOf()
+    val dataConsumerNameMap: Map<String, DataConsumer<Converter<*, *>>>
+    val channelConverterMap: Map<String, MutableList<ConsumerConverterMap>>
 
     data class ConsumerConverterMap(
         val consumerName: String,
@@ -23,11 +21,12 @@ class ConsumerAndConverterManager(
     )
 
     init {
+        val dataConsumerMap = mutableMapOf<String, DataConsumer<Converter<*, *>>>()
 
         for (dataConsumerConfig in configuration.dataConsumerConfigs) {
             try {
-                dataConsumerNameMap[dataConsumerConfig.consumerName] =
-                    Class.forName(dataConsumerConfig.consumerClass)?.constructors?.first { constructor ->
+                dataConsumerMap[dataConsumerConfig.consumerName] =
+                    Class.forName(dataConsumerConfig.consumerClass).constructors.first { constructor ->
                         constructor.parameterCount == 2 && constructor.parameterTypes
                             .all { it == Int::class.java }
                     }?.newInstance(
@@ -41,6 +40,14 @@ class ConsumerAndConverterManager(
             }
         }
 
+        this.dataConsumerNameMap = dataConsumerMap
+
+        logger.info(
+            "Successfully initialised the Data Consumers: {}",
+            this.dataConsumerNameMap.entries
+        )
+
+        val converterMap = mutableMapOf<String, MutableList<ConsumerConverterMap>>()
         for (sensorConf in configuration.sensorConfigs) {
             logger.debug(sensorConf.toString())
             val listOfConverters = mutableListOf<ConsumerConverterMap>()
@@ -55,13 +62,13 @@ class ConsumerAndConverterManager(
                 if (dataConsumerNameMap.keys.contains(converters.consumerName)) {
                     listOfConverters.add(ConsumerConverterMap(converters.consumerName, converter))
                 }
-                channelConverterMap[sensorConf.inputTopic] = listOfConverters
+                converterMap[sensorConf.inputTopic] = listOfConverters
             }
         }
 
-        require(channelConverterMap.values.any { converterMap ->
+        require(converterMap.values.any { values ->
             dataConsumerNameMap.keys.any { name ->
-                converterMap.any {
+                values.any {
                     it.consumerName == name
                 }
             }
@@ -75,6 +82,12 @@ class ConsumerAndConverterManager(
             )
             exitProcess(1)
         }
+        this.channelConverterMap = converterMap
+
+        logger.info(
+            "Successfully initialised the converters for sensor data: {}",
+            this.channelConverterMap.entries
+        )
 
     }
 
@@ -91,7 +104,7 @@ class ConsumerAndConverterManager(
         return convertersList.first { it.consumerName == consumerName }.converter
     }
 
-    fun getAllChannels(): List<String> = channelConverterMap.keys.toList()
+    fun getAllChannels(): Set<String> = channelConverterMap.keys
 
     companion object {
         private val logger = LoggerFactory.getLogger(ConsumerAndConverterManager::class.java)

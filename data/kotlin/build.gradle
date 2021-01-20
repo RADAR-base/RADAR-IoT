@@ -20,7 +20,8 @@ subprojects {
         implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     }
 }
-
-wrapper {
-    gradleVersion = "5.4.1"
+allprojects {
+    wrapper {
+        gradleVersion = "6.5.1"
+    }
 }

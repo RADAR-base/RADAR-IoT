@@ -1,15 +1,11 @@
 package org.radarbase.iot.handler
 
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.radarbase.iot.commons.exception.ConfigurationException
 import org.radarbase.iot.commons.exception.LogAndContinueExceptionHandler
-import org.radarbase.iot.commons.util.SingletonHolder
 import org.radarbase.iot.config.Configuration.Companion.CONFIGURATION
 import org.radarbase.iot.consumer.DataConsumer
 import org.radarbase.iot.pubsub.connection.RedisConnection
-import org.radarbase.iot.pubsub.connection.RedisConnectionProperties
 import org.radarbase.iot.pubsub.subscriber.RedisSubscriber
 import org.slf4j.LoggerFactory
 
@@ -21,19 +17,22 @@ import org.slf4j.LoggerFactory
  */
 class RedisDataHandler : Handler {
 
-    private var redisProperties: RedisConnectionProperties =
-        CONFIGURATION.redisProperties ?: RedisConnectionProperties()
+    private val consumerAndConverterManager: ConsumerAndConverterManager by lazy {
+        ConsumerAndConverterManager(CONFIGURATION)
+    }
 
-    private lateinit var consumerAndConverterManager: ConsumerAndConverterManager
+    private val redisPubSub: RedisPubSub by lazy {
+        RedisPubSub(consumerAndConverterManager)
+    }
 
-    private lateinit var redisPubSub: RedisPubSub
+    private val redisSubscriber by lazy {
+        RedisSubscriber(RedisConnection(CONFIGURATION.redisProperties))
+    }
 
     @Throws(ConfigurationException::class)
     override fun initialise() {
         logger.info("Configuration is : $CONFIGURATION")
-
-        consumerAndConverterManager = ConsumerAndConverterManager(CONFIGURATION)
-        redisPubSub = RedisPubSub(consumerAndConverterManager)
+        logger.info("Redispubsub is subscribed: {}", redisPubSub.isSubscribed)
 
         Thread.setDefaultUncaughtExceptionHandler(
             LogAndContinueExceptionHandler(
@@ -45,15 +44,11 @@ class RedisDataHandler : Handler {
 
     @Throws(ConfigurationException::class)
     override fun start() {
-        for (sensorConf in CONFIGURATION.sensorConfigs) {
-            GlobalScope.launch(exceptionHandler) {
-                subscriberFactory.getInstance(redisProperties).subscribe(
-                    sensorConf.inputTopic,
-                    redisPubSub
-                )
-                logger.info("Subscribed to ${sensorConf.inputTopic}")
-            }
-        }
+        val topics = CONFIGURATION.sensorConfigs.map { it.inputTopic }.toTypedArray()
+        redisSubscriber.subscribe(
+            topics,
+            redisPubSub
+        )
     }
 
     override fun stop() {
@@ -70,11 +65,6 @@ class RedisDataHandler : Handler {
     }
 
     companion object {
-
-        private val subscriberFactory =
-            SingletonHolder<RedisSubscriber, RedisConnectionProperties> {
-                RedisSubscriber(RedisConnection(it))
-            }
 
         val exceptionHandler = CoroutineExceptionHandler { _, exception ->
             logger.error("Caught $exception: ${exception.message}", exception)
