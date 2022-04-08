@@ -1,15 +1,14 @@
 package org.radarbase.iot.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.radarbase.iot.commons.auth.PersistentOAuthStateStore
 import org.radarbase.iot.commons.exception.ConfigurationException
+import org.radarbase.iot.consumer.DataConsumer
+import org.radarbase.iot.converter.Converter
+import org.radarbase.iot.dataHandlers
 import org.radarbase.iot.pubsub.connection.RedisConnectionProperties
 import org.slf4j.LoggerFactory
-import java.io.File
-import java.io.FileInputStream
-import java.io.InputStream
+import java.time.Duration
+import java.time.Instant
 
 
 data class Configuration(
@@ -26,7 +25,25 @@ data class Configuration(
         val maxCacheSize: Int,
         val uploadIntervalSeconds: Int,
         val consumerName: String
-    )
+    ) {
+        val instance: DataConsumer<Converter<*, *>> by lazy {
+            try {
+                Class.forName(consumerClass).constructors.first { constructor ->
+                    constructor.parameterCount == 2 && constructor.parameterTypes
+                        .all { it == Int::class.java }
+                }?.newInstance(
+                    uploadIntervalSeconds, maxCacheSize
+                )?.let { it as DataConsumer<Converter<*, *>> }
+                    ?: throw ConfigurationException(
+                        "Cannot instantiate data consumer $consumerClass"
+                                + "because cannot find suitable class with constructor parameters."
+                    )
+            } catch (exc: Exception) {
+                logger.error("Could not instantiate $consumerClass", exc)
+                throw exc
+            }
+        }
+    }
 
     data class RadarConfig(
         val projectId: String,
@@ -48,13 +65,23 @@ data class Configuration(
         val sensorName: String,
         val inputTopic: String,
         val outputTopic: String?,
-        val converterClasses: List<Converters>
+        val converterClasses: List<ConverterConfig>
     )
 
-    data class Converters(
+    data class ConverterConfig(
         val consumerName: String,
         val converterClass: String
-    )
+    ) {
+        val instance: Converter<*, *> by lazy {
+            Class.forName(converterClass).constructors.first {
+                it.parameters.isEmpty()
+            }.newInstance()?.let { it as Converter<*, *> } ?: throw
+            ConfigurationException(
+                "Cannot instantiate data " +
+                        "consumer $converterClass"
+            )
+        }
+    }
 
     data class InfluxDbConfig(
         val url: String = "http://localhost:8086",
@@ -66,50 +93,37 @@ data class Configuration(
         val retentionPolicyReplicationFactor: Int = 1
     )
 
+
     companion object {
+
+        private var lastFetch: Instant = Instant.MIN
+        private val refreshInterval = Duration.ofMinutes(15)
 
         private val logger = LoggerFactory.getLogger(this::class.java)
 
-        const val ENV_CONFIG_LOCATION_PROPERTY = "RADAR_IOT_CONFIG_LOCATION"
-        const val CONFIG_FILE_NAME_DEFAULT = "radar_iot_config.yaml"
-        private val configFilePath: String by lazy {
-            System.getenv(ENV_CONFIG_LOCATION_PROPERTY) ?: "/radar-iot/${CONFIG_FILE_NAME_DEFAULT}"
-        }
-
-        @Throws(ConfigurationException::class)
-        internal fun loadPropertiesFromFile(): Configuration {
-            var inputStream: InputStream
-            try {
-                inputStream = FileInputStream(File(configFilePath))
-            } catch (e: Exception) {
-                logger.warn(
-                    "Could not load configuration from the File Path: ${configFilePath}." +
-                            " Trying to load from the Classpath..."
-                )
-                try {
-                    inputStream = CONFIG_FILE_NAME_DEFAULT.tryLoadFromClasspath()
-                } catch (exc: Exception) {
-                    throw ConfigurationException("Could not load Configuration From ClassPath.")
-                }
-            }
-
-            val mapper = ObjectMapper(YAMLFactory()) // Enable YAML parsing
-            mapper.registerModule(KotlinModule()) // Enable Kotlin support
-            return inputStream.use {
-                mapper.readValue(it, Configuration::class.java)
-            }
-        }
-
-        private fun String.tryLoadFromClasspath(): InputStream {
-            return this@Companion::class.java
-                .classLoader
-                .getResourceAsStream(this)!!
-        }
+        private lateinit var configuration: Configuration
 
         // Should be used wherever configuration is needed. Provides a Singleton of the
-        // Configuration using lazy init
-        val CONFIGURATION: Configuration by lazy {
-            loadPropertiesFromFile()
-        }
+        // Configuration. Also tries to fetch the config every refreshInterval if required.
+        val CONFIGURATION: Configuration
+            get() {
+                if (lastFetch.plus(refreshInterval).isBefore(Instant.now()) &&
+                    ConfigurationFetcher.ConfigFetcher.hasUpdates()
+                ) {
+                    configuration = ConfigurationFetcher.ConfigFetcher.fetchConfig()
+                    dataHandlers.forEach {
+                        it.apply {
+                            if (it.isRunning()) {
+                                // restart the data handlers after the config change
+                                stop()
+                                initialise()
+                                start()
+                            }
+                        }
+                    }
+                    lastFetch = Instant.now()
+                }
+                return configuration
+            }
     }
 }

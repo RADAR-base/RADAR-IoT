@@ -6,10 +6,8 @@ logger = logging.getLogger('root')
 
 
 class Connection(ABC):
-    host = 'localhost'
-    port = '8080'
 
-    def __init__(self, host, port, user, password):
+    def __init__(self, host='localhost', port='8080', user=None, password=None):
         self.host = host
         self.port = port
         self.user = user
@@ -38,7 +36,6 @@ class Publisher(ABC):
     def __init__(self, connection: Connection, publisher_thread_pool: ThreadPoolExecutor):
         self.connection = connection
         self.publisher_thread_pool = publisher_thread_pool
-        self.topic_prefix = 'data-stream/sensors/'
         if connection.is_connected():
             logger.debug(f'Using the connection {connection.__class__.__name__} for publishing.')
         else:

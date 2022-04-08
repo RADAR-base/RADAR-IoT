@@ -9,7 +9,7 @@ import java.util.*
 import kotlin.system.exitProcess
 
 class ConsumerAndConverterManager(
-    private val configuration: Configuration
+    configuration: Configuration
 ) {
 
     val dataConsumerNameMap: Map<String, DataConsumer<Converter<*, *>>>
@@ -23,42 +23,24 @@ class ConsumerAndConverterManager(
     init {
         val dataConsumerMap = mutableMapOf<String, DataConsumer<Converter<*, *>>>()
 
-        for (dataConsumerConfig in configuration.dataConsumerConfigs) {
-            try {
-                dataConsumerMap[dataConsumerConfig.consumerName] =
-                    Class.forName(dataConsumerConfig.consumerClass).constructors.first { constructor ->
-                        constructor.parameterCount == 2 && constructor.parameterTypes
-                            .all { it == Int::class.java }
-                    }?.newInstance(
-                        dataConsumerConfig.uploadIntervalSeconds, dataConsumerConfig.maxCacheSize
-                    )?.let { it as DataConsumer<Converter<*, *>> } ?: throw ConfigurationException(
-                        "Cannot instantiate data " +
-                                "consumer ${dataConsumerConfig.consumerClass}"
-                    )
-            } catch (exc: Exception) {
-                logger.warn("Could not instantiate ${dataConsumerConfig.consumerClass}", exc)
-            }
+        configuration.dataConsumerConfigs.forEach {
+            dataConsumerMap[it.consumerName] = it.instance
         }
 
         this.dataConsumerNameMap = dataConsumerMap
-
         logger.info(
             "Successfully initialised the Data Consumers: {}",
             this.dataConsumerNameMap.entries
         )
 
         val converterMap = mutableMapOf<String, MutableList<ConsumerConverterMap>>()
+
+
         for (sensorConf in configuration.sensorConfigs) {
             logger.debug(sensorConf.toString())
             val listOfConverters = mutableListOf<ConsumerConverterMap>()
             for (converters in sensorConf.converterClasses) {
-                val converter = Class.forName(converters.converterClass).constructors.first {
-                    it.parameters.isEmpty()
-                }.newInstance()?.let { it as Converter<*, *> } ?: throw
-                ConfigurationException(
-                    "Cannot instantiate data " +
-                            "consumer ${converters.converterClass}"
-                )
+                val converter = converters.instance
                 if (dataConsumerNameMap.keys.contains(converters.consumerName)) {
                     listOfConverters.add(ConsumerConverterMap(converters.consumerName, converter))
                 }
@@ -88,7 +70,6 @@ class ConsumerAndConverterManager(
             "Successfully initialised the converters for sensor data: {}",
             this.channelConverterMap.entries
         )
-
     }
 
     fun dataConsumerForName(name: String): DataConsumer<*>? = dataConsumerNameMap[name]
