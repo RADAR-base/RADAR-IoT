@@ -2,40 +2,30 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 import random
 from pubsub import Publisher
-from paho.mqtt import client as mqtt_client
+from pubsub.mqtt_connection import MqttConnection
 from time import time
 logger = logging.getLogger('root')
-
+import json
 
 class MqttPublisher(Publisher):
 
-    def __init__(self, broker, client_id,port):
-        self.client_id = client_id
-        self.broker = broker
-        self.port = port
+    def __init__(self, connection: MqttConnection,
+                 publisher_thread_pool: ThreadPoolExecutor = ThreadPoolExecutor(max_workers=4)):
+        super().__init__(connection, publisher_thread_pool)
 
-
-    def connect_mqtt(self):
-        def on_connection(client, userdata, flags, rc):
-            if rc == 0:
-                print("MQTT Broker has been connected!")
-            else:
-                print("Failed to connect, return code %d\n", rc)
-
-        client = mqtt_client.Client(self.client_id)
-        client.on_connect = on_connection
-        client.connect(self.broker, self.port)
-        return client
-
-    def publish(self,msgs,topic):
+    def _publish(self,msgs,topic):
         try:
             # publish messages
-            client = self.connect_mqtt()
-            client.loop_start()
-            result = self.client.publish(topic, msgs)
-            if result[0] == 0:
-                logger.info(f'Published messages using publisher MQTT'
-                            f' on channel {topic}.')
+            if msgs is not None:
+                client = self.connection.connect()
+                client.loop_start()
+                print("msgs is {}".format(msgs))
+                print("tps  is {}".format(topic))
+                result = client.publish(topic, msgs)
+                if result[0] == 0:
+                    logger.info(f'Published messages using publisher MQTT'
+                                f' on channel {topic}.')
+
             else:
                 logger.warning(f'Messages cannot be none.')
         except:
