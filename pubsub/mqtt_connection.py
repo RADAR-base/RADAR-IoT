@@ -8,8 +8,8 @@ logger = logging.getLogger('root')
 
 class MqttConnection(Connection):
 
-    def __init__(self, host='broker.emqx.io', port='1883', user="radarbase", password="password"):
-        super().__init__(host, port, user, password)
+    def __init__(self, host='broker.emqx.io', port='1883', user="radarbase", password="password", QoS=0):
+        super().__init__(host, port, user, password, QoS)
         self.is_connection = False
 
     # Create a dummy connection to check if MQTT is available and future connections can be made
