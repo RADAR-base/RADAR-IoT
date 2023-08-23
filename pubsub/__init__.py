@@ -9,7 +9,7 @@ class Connection(ABC):
     host = 'localhost'
     port = '8080'
     QoS = 0
-    def __init__(self, host, port, user, password, QoS):
+    def __init__(self, host='localhost', port='8080', user=None, password=None, QoS):
         self.host = host
         self.port = port
         self.user = user
