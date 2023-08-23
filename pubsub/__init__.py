@@ -8,12 +8,13 @@ logger = logging.getLogger('root')
 class Connection(ABC):
     host = 'localhost'
     port = '8080'
-
-    def __init__(self, host, port, user, password):
+    QoS = 0
+    def __init__(self, host, port, user, password, QoS):
         self.host = host
         self.port = port
         self.user = user
         self.password = password
+        self.QoS = QoS
         self.connect()
 
     @abstractmethod
