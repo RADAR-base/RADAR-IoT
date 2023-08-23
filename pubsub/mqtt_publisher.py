@@ -19,7 +19,7 @@ class MqttPublisher(Publisher):
             if msgs is not None:
                 client = self.connection.connect()
                 client.loop_start()
-                result = client.publish(topic, msgs)
+                result = client.publish(topic, msgs, qos=self.connection.QoS)
                 if result[0] == 0:
                     logger.info(f'Published messages using publisher MQTT'
                                 f' on channel {topic}.')
