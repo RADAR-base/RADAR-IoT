@@ -166,7 +166,8 @@ class Factory:
             Factory.publisher = DynamicImporter(config.get_publisher()[MODULE_KEY],
                                                 config.get_publisher()[CLASS_KEY],
                                                 connection=Factory.get_connection(),
-                                                publisher_thread_pool=publishing_thread_pool).instance
+                                                publisher_thread_pool=publishing_thread_pool,
+                                               **config.get_publisher()['connection']['args']).instance
             return Factory.publisher
         else:
             return Factory.publisher
