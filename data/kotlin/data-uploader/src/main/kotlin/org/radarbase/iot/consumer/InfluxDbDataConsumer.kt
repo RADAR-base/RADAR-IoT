@@ -52,7 +52,7 @@ class InfluxDbDataConsumer(
     }
 
     override fun close() {
-        processData(this.cache.toMap()).also { this.cache.clear() }
+        processData(this.cache.toMap()).also { this.cache.stop() }
         influxDbConnection.close()
     }
 

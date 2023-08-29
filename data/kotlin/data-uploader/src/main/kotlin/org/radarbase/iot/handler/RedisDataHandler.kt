@@ -17,21 +17,22 @@ import org.slf4j.LoggerFactory
  */
 class RedisDataHandler : Handler {
 
-    private val consumerAndConverterManager: ConsumerAndConverterManager by lazy {
-        ConsumerAndConverterManager(CONFIGURATION)
-    }
+    private lateinit var consumerAndConverterManager: ConsumerAndConverterManager
 
-    private val redisPubSub: RedisPubSub by lazy {
-        RedisPubSub(consumerAndConverterManager)
-    }
+    private lateinit var redisPubSub: RedisPubSub
 
-    private val redisSubscriber by lazy {
-        RedisSubscriber(RedisConnection(CONFIGURATION.redisProperties))
-    }
+    private lateinit var redisSubscriber: RedisSubscriber
+
+    private var isRunning: Boolean = false
 
     @Throws(ConfigurationException::class)
     override fun initialise() {
         logger.info("Configuration is : $CONFIGURATION")
+
+        consumerAndConverterManager = ConsumerAndConverterManager(CONFIGURATION)
+        redisPubSub = RedisPubSub(consumerAndConverterManager)
+        redisSubscriber = RedisSubscriber(RedisConnection(CONFIGURATION.redisProperties))
+
         logger.info("Redispubsub is subscribed: {}", redisPubSub.isSubscribed)
 
         Thread.setDefaultUncaughtExceptionHandler(
@@ -45,14 +46,16 @@ class RedisDataHandler : Handler {
     @Throws(ConfigurationException::class)
     override fun start() {
         val topics = CONFIGURATION.sensorConfigs.map { it.inputTopic }.toTypedArray()
-        redisSubscriber.subscribe(
-            topics,
-            redisPubSub
-        )
+        redisSubscriber.subscribe(topics, redisPubSub)
+        isRunning = true
     }
 
     override fun stop() {
         logger.info("Stopping ${this::class.java.name}...")
+        if (!isRunning) {
+            logger.warn("The Redis Data Handler is not running. Skipping stopping it")
+            return
+        }
         try {
             consumerAndConverterManager.getAllChannels().forEach {
                 redisPubSub.unsubscribe(it)
@@ -61,8 +64,12 @@ class RedisDataHandler : Handler {
             logger.info("Gracefully stopped ${this::class.java.name}")
         } catch (exc: UninitializedPropertyAccessException) {
             logger.info("The ${this::class.java.name} was not initialised properly.")
+        } finally {
+            isRunning = false
         }
     }
+
+    override fun isRunning(): Boolean = isRunning
 
     companion object {
 

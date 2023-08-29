@@ -18,4 +18,8 @@ class SimpleCache<K, V> : Cache<K, V> {
     override fun clear() = cache.clear()
 
     override fun toMap(): Map<K, V> = HashMap<K, V>(cache)
+
+    override fun stop() {
+        this.clear()
+    }
 }

@@ -79,6 +79,12 @@ class ExpirableCache<K, V>(
         lastFlush = Instant.now()
     }
 
+    override fun stop() {
+        timer.cancel()
+        timer.purge()
+        delegate.stop()
+    }
+
     @Synchronized
     private fun isExpired() = lastFlush.plus(flushInterval).isBefore(Instant.now())
 

@@ -13,4 +13,6 @@ interface Cache<K, V> {
     fun clear()
 
     fun toMap(): Map<K, V>
+
+    fun stop()
 }

@@ -7,4 +7,6 @@ interface Handler {
     fun start()
 
     fun stop()
+
+    fun isRunning(): Boolean
 }
