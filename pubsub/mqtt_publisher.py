@@ -10,16 +10,19 @@ import json
 class MqttPublisher(Publisher):
 
     def __init__(self, connection: MqttConnection,
-                 publisher_thread_pool: ThreadPoolExecutor = ThreadPoolExecutor(max_workers=4)):
+                 publisher_thread_pool: ThreadPoolExecutor = ThreadPoolExecutor(max_workers=4),**kwargs):
         super().__init__(connection, publisher_thread_pool)
-
+        if "QoS" in kwargs:
+            self.QoS = int(kwargs.get('QoS'))
+            
     def _publish(self,msgs,topic):
         try:
             # publish messages
             if msgs is not None:
                 client = self.connection.connect()
                 client.loop_start()
-                result = client.publish(topic, msgs, qos=self.connection.QoS)
+                result = client.publish(topic, msgs, qos=self.QoS)
+                logger.info(f"Quality of service is {self.QoS}")
                 if result[0] == 0:
                     logger.info(f'Published messages using publisher MQTT'
                                 f' on channel {topic}.')
