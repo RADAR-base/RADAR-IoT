@@ -17,7 +17,8 @@ publisher:
     port: 1883
     user: 'radarbase'
     password: ''
-    QoS: 0
+    args:
+      QoS: '0'
   publisher_max_threads: 5
 
 
