@@ -14,7 +14,8 @@ class MqttPublisher(Publisher):
         super().__init__(connection, publisher_thread_pool)
         if "QoS" in kwargs:
             self.QoS = int(kwargs.get('QoS'))
-            
+        else:
+            self.QoS = 0
     def _publish(self,msgs,topic):
         try:
             # publish messages
