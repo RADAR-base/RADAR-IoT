@@ -16,14 +16,16 @@ class MqttPublisher(Publisher):
             self.QoS = int(kwargs.get('QoS'))
         else:
             self.QoS = 0
+        logger.info(f"Using Quality of service: {self.QoS}")
+        
     def _publish(self,msgs,topic):
         try:
             # publish messages
             if msgs is not None:
-                client = self.connection.connect()
+                client = self.connection.get_connection()
                 client.loop_start()
                 result = client.publish(topic, msgs, qos=self.QoS)
-                logger.info(f"Quality of service is {self.QoS}")
+                
                 if result[0] == 0:
                     logger.info(f'Published messages using publisher MQTT'
                                 f' on channel {topic}.')

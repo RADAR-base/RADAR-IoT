@@ -9,40 +9,46 @@ logger = logging.getLogger('root')
 class MqttConnection(Connection):
 
     def __init__(self, host='broker.emqx.io', port='1883', user="radarbase", password="password", QoS=0):
-        super().__init__(host, port, user, password, QoS)
         self.is_connection = False
+        self.client = None
+        self.is_connected_flag = False
+        super().__init__(host, port, user, password)
 
     # Create a dummy connection to check if MQTT is available and future connections can be made
     def connect(self):
         def on_connection(user, userdata, flags, rc):
             if rc == 0:
                 logger.info("MQTT Broker has been connected!")
+                self.is_connected_flag = True
             else:
-                logger.info("Failed to connect, return code %d\n", rc)
+                logger.error("Failed to connect, return code %d\n", rc)
+                raise Exception("Cannot Connect to MQTT broker, please check required configurations.")
+        
+        def on_disconnect(client, userdata, rc):
+            logger.info("MQTT Broker has been Disconnected!")
+            self.is_connected_flag = False
 
-        client = mqtt_client.Client(self.user)
-        client.username_pw_set(self.user, self.password)
-        client.on_connect = on_connection
+        self.client = mqtt_client.Client(self.user)
+        self.client.username_pw_set(self.user, self.password)
+        self.client.on_connect = on_connection
+        self.client.on_disconnect = on_disconnect
         #print(self.host)
-        client.connect(self.host, self.port)
-        return client
+        self.client.connect(self.host, self.port)
+        return self.client
 
     def get_connection(self):
         logger.debug('Getting MQTT Connection...')
         # creates and returns a single connection from the Connection Pool.
-        return None
+        if self.is_connected_flag:
+            return self.client
+        else:
+            return self.connect()
 
     def get_connection_attributes(self):
-        logger.debug("connection debugger")
+        logger.debug(f'Returning Connection arguments of {self.__class__.__name__}')
+        return dict(type=self.__class__.__name__, host=super().host, port=super().port, user=super().user,
+                    password=super().password)
 
     def is_connected(self) -> bool:
         logger.debug(f'Checking if connection is successful...')
-        return True
-
-    def on_connect(self, conn):
-        logger.info(f'Connection to MQTT established.')
-
-
-    def get_connection_pool(self):
-        logger.info(f'get coonection pool')
-
+        return self.is_connected_flag or self.client != None
