@@ -20,6 +20,6 @@ class JsonMessageParser<out T>(private val typeReference: TypeReference<T>) : Pa
     }
 
     companion object {
-        private val objectMapper = ObjectMapper().also { it.registerModule(KotlinModule()) }
+        private val objectMapper = ObjectMapper().also { it.registerModule(KotlinModule.Builder().build()) }
     }
 }

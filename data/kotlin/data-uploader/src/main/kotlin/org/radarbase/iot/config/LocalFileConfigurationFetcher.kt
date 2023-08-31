@@ -45,7 +45,7 @@ class LocalFileConfigurationFetcher : ConfigurationFetcher {
         }
 
         val mapper = ObjectMapper(YAMLFactory()) // Enable YAML parsing
-        mapper.registerModule(KotlinModule()) // Enable Kotlin support
+        mapper.registerModule(KotlinModule.Builder().build()) // Enable Kotlin support
         return inputStream.use {
             mapper.readValue(it, Configuration::class.java)
         }
