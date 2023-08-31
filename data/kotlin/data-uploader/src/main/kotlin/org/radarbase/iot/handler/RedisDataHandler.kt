@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import org.radarbase.iot.commons.exception.ConfigurationException
 import org.radarbase.iot.commons.exception.LogAndContinueExceptionHandler
 import org.radarbase.iot.config.Configuration.Companion.CONFIGURATION
+import org.radarbase.iot.config.Sensors
 import org.radarbase.iot.consumer.DataConsumer
 import org.radarbase.iot.pubsub.connection.RedisConnection
 import org.radarbase.iot.pubsub.subscriber.RedisSubscriber
@@ -17,7 +18,7 @@ import org.slf4j.LoggerFactory
  */
 class RedisDataHandler : Handler {
 
-    private lateinit var consumerAndConverterManager: ConsumerAndConverterManager
+    private lateinit var sensors: Sensors
 
     private lateinit var redisPubSub: RedisPubSub
 
@@ -29,8 +30,8 @@ class RedisDataHandler : Handler {
     override fun initialise() {
         logger.info("Configuration is : $CONFIGURATION")
 
-        consumerAndConverterManager = ConsumerAndConverterManager(CONFIGURATION)
-        redisPubSub = RedisPubSub(consumerAndConverterManager)
+        sensors = Sensors(CONFIGURATION)
+        redisPubSub = RedisPubSub(sensors)
         redisSubscriber = RedisSubscriber(RedisConnection(CONFIGURATION.redisProperties))
 
         logger.info("Redispubsub is subscribed: {}", redisPubSub.isSubscribed)
@@ -45,7 +46,7 @@ class RedisDataHandler : Handler {
 
     @Throws(ConfigurationException::class)
     override fun start() {
-        val topics = CONFIGURATION.sensorConfigs.map { it.inputTopic }.toTypedArray()
+        val topics = sensors.sensors.map { it.config.inputTopic }.toTypedArray()
         redisSubscriber.subscribe(topics, redisPubSub)
         isRunning = true
     }
@@ -57,10 +58,11 @@ class RedisDataHandler : Handler {
             return
         }
         try {
-            consumerAndConverterManager.getAllChannels().forEach {
-                redisPubSub.unsubscribe(it)
+            sensors.sensors.forEach {
+                redisPubSub.unsubscribe(it.config.inputTopic)
+                it.consumerConverters.forEach { cc -> cc.dataConsumer.close() }
             }
-            consumerAndConverterManager.dataConsumerNameMap.values.forEach { it.close() }
+
             logger.info("Gracefully stopped ${this::class.java.name}")
         } catch (exc: UninitializedPropertyAccessException) {
             logger.info("The ${this::class.java.name} was not initialised properly.")

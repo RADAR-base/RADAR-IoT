@@ -2,10 +2,11 @@ package org.radarbase.iot.handler
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.radarbase.iot.config.Sensors
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.JedisPubSub
 
-class RedisPubSub(private val consumerAndConverterManager: ConsumerAndConverterManager) :
+class RedisPubSub(private val sensors: Sensors) :
     JedisPubSub() {
 
     override fun onSubscribe(channel: String?, subscribedChannels: Int) {
@@ -24,17 +25,15 @@ class RedisPubSub(private val consumerAndConverterManager: ConsumerAndConverterM
         )
     }
 
-    override fun onMessage(channel: String?, message: String?) {
+    override fun onMessage(channel: String, message: String?) {
         super.onMessage(channel, message)
         logger.debug("Received message: [$message] from channel: [$channel]")
         // Forward the message to all the dataConsumers by launching a coroutine
         GlobalScope.launch(RedisDataHandler.exceptionHandler) {
-            consumerAndConverterManager.dataConsumerNameMap.forEach { (consumerName, consumer) ->
+
+            sensors.sensorForTopic(channel)?.consumerConverters?.forEach {
                 try {
-                    consumer.handleData(
-                        message, consumerAndConverterManager
-                            .converterForChannelAndConsumer(channel!!, consumerName)
-                    )
+                    it.dataConsumer.handleData(message, it.converter)
                 } catch (exc: NoSuchElementException) {
                     // TODO Maybe preempt this case as this could reduce performance as called
                     //  every time a message is received.
