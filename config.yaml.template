@@ -38,7 +38,7 @@ publisher:
     port: '6379'
     user: ''
     password: ''
-    QoS: 0
+    args: {}
   publisher_max_threads: 5
 
 converter:
