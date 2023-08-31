@@ -12,7 +12,7 @@ class RedisConnection(Connection):
     def __init__(self, host='localhost', port='6379', user=None, password=None):
         self.redis_conn_pool = redis.ConnectionPool(host=host, port=port, password=password)
         self.is_connection_available = False
-        super().__init__(host, port, user, password, QoS)
+        super().__init__(host, port, user, password)
 
     # Create a dummy connection to check if REDIS is available and future connections can be made
     def connect(self) -> None:

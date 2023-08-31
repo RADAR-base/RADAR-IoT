@@ -47,7 +47,7 @@ class MqttConnection(Connection):
     def get_connection_attributes(self):
         logger.debug(f'Returning Connection arguments of {self.__class__.__name__}')
         return dict(type=self.__class__.__name__, host=super().host, port=super().port, user=super().user,
-                    password=super().password)
+                    password=super().password, QoS=self.QoS)
 
     def is_connected(self) -> bool:
         logger.debug(f'Checking if connection is successful...')
