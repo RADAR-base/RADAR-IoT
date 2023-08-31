@@ -93,7 +93,6 @@ data class Configuration(
         val retentionPolicyReplicationFactor: Int = 1
     )
 
-
     companion object {
 
         private var lastFetch: Instant = Instant.MIN
