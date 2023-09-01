@@ -1,20 +1,15 @@
 package org.radarbase.iot
 
-import org.radarbase.iot.handler.Handler
-import org.radarbase.iot.handler.RedisDataHandler
-
-val dataHandlers: Array<Handler> = arrayOf(RedisDataHandler())
+import org.radarbase.iot.config.Configuration.Companion.CONFIGURATION
 
 fun main(args: Array<String>) {
 
     Runtime.getRuntime().addShutdownHook(Thread {
-        dataHandlers.forEach { it.stop() }
+        CONFIGURATION.internalBroker.stop()
     })
 
-    dataHandlers.forEach {
-        it.apply {
-            initialise()
-            start()
-        }
+    CONFIGURATION.internalBroker.apply {
+        initialise()
+        start()
     }
 }

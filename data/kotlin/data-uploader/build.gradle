@@ -37,6 +37,7 @@ dependencies {
     implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: jacksonVersion
     implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: jacksonVersion
     implementation group: 'org.influxdb', name: 'influxdb-java', version: '2.16'
+    implementation group: 'org.eclipse.paho', name: 'org.eclipse.paho.client.mqttv3', version: '1.2.1'
 
     runtimeOnly group: 'org.slf4j', name: 'slf4j-simple', version: '1.6.1'
 

@@ -4,7 +4,8 @@ import org.radarbase.iot.commons.auth.PersistentOAuthStateStore
 import org.radarbase.iot.commons.exception.ConfigurationException
 import org.radarbase.iot.consumer.DataConsumer
 import org.radarbase.iot.converter.Converter
-import org.radarbase.iot.dataHandlers
+import org.radarbase.iot.handler.MQTTDataHandler
+import org.radarbase.iot.handler.RedisDataHandler
 import org.radarbase.iot.pubsub.connection.RedisConnectionProperties
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -12,13 +13,30 @@ import java.time.Instant
 
 
 data class Configuration(
+    val internalBrokerName: String = "redis",
     val radarConfig: RadarConfig,
     val sensorConfigs: List<SensorConfig>,
     val dataConsumerConfigs: List<DataConsumerConfig>,
     val redisProperties: RedisConnectionProperties = RedisConnectionProperties(),
     val persistenceStoreproperties: PersistentOAuthStateStore.NitriteProperties?,
-    val influxDbConfig: InfluxDbConfig?
+    val influxDbConfig: InfluxDbConfig?,
+    val mqttConfig: MQTTConfig = MQTTConfig()
 ) {
+
+    private val validBrokers = arrayOf("redis", "mqtt")
+
+    val internalBroker: org.radarbase.iot.handler.Handler = when (internalBrokerName) {
+        "redis" -> RedisDataHandler()
+        "mqtt" -> MQTTDataHandler()
+
+        else -> throw ConfigurationException(
+            "The provided internal broker is not valid. Valid values are: ${
+                validBrokers.joinToString(
+                    ", "
+                )
+            }"
+        )
+    }
 
     data class DataConsumerConfig(
         val consumerClass: String,
@@ -75,8 +93,7 @@ data class Configuration(
         val instance: Converter<*, *> by lazy {
             Class.forName(converterClass).constructors.first {
                 it.parameters.isEmpty()
-            }.newInstance()?.let { it as Converter<*, *> } ?: throw
-            ConfigurationException(
+            }.newInstance()?.let { it as Converter<*, *> } ?: throw ConfigurationException(
                 "Cannot instantiate data " +
                         "consumer $converterClass"
             )
@@ -91,6 +108,14 @@ data class Configuration(
         val retentionPolicyName: String = "radarIotRetentionPolicy",
         val retentionPolicyDuration: String = "1h",
         val retentionPolicyReplicationFactor: Int = 1
+    )
+
+    data class MQTTConfig(
+        val username: String = "",
+        val password: String = "",
+        val host: String = "tcp://broker.emqx.io",
+        val port: String = "1883",
+        val qos: Int = 0
     )
 
     companion object {
@@ -110,19 +135,19 @@ data class Configuration(
                     ConfigurationFetcher.ConfigFetcher.hasUpdates()
                 ) {
                     configuration = ConfigurationFetcher.ConfigFetcher.fetchConfig()
-                    dataHandlers.forEach {
-                        it.apply {
-                            if (it.isRunning()) {
-                                // restart the data handlers after the config change
-                                stop()
-                                initialise()
-                                start()
-                            }
+                    configuration.internalBroker.apply {
+                        if (isRunning()) {
+                            // restart the data handlers after the config change
+                            stop()
+                            initialise()
+                            start()
                         }
                     }
                     lastFetch = Instant.now()
                 }
                 return configuration
             }
+
+        val SENSORS = Sensors(CONFIGURATION)
     }
 }
