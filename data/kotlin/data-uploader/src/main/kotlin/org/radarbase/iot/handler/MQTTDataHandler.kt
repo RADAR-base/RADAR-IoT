@@ -6,8 +6,7 @@ import org.radarbase.iot.commons.exception.LogAndContinueExceptionHandler
 import org.radarbase.iot.config.Configuration.Companion.CONFIGURATION
 import org.radarbase.iot.config.Configuration.Companion.SENSORS
 import org.radarbase.iot.consumer.DataConsumer
-import org.radarbase.iot.pubsub.connection.RedisConnection
-import org.radarbase.iot.pubsub.subscriber.RedisSubscriber
+import org.radarbase.iot.pubsub.connection.MQTTConnection
 import org.slf4j.LoggerFactory
 
 /**
@@ -16,11 +15,11 @@ import org.slf4j.LoggerFactory
  * It then listens for any new events (data from pub/sub) and forwards it to all the
  * [DataConsumer]s.
  */
-class RedisDataHandler : Handler {
+class MQTTDataHandler : Handler {
 
-    private lateinit var redisPubSub: RedisPubSub
+    private lateinit var mqttCallback: RadarMQTTCallback
 
-    private lateinit var redisSubscriber: RedisSubscriber
+    private lateinit var mqttConnection: MQTTConnection
 
     private var isRunning: Boolean = false
 
@@ -28,15 +27,15 @@ class RedisDataHandler : Handler {
     override fun initialise() {
         logger.info("Configuration is : $CONFIGURATION")
 
-        redisPubSub = RedisPubSub(SENSORS)
-        redisSubscriber = RedisSubscriber(RedisConnection(CONFIGURATION.redisProperties))
+        mqttConnection = MQTTConnection(CONFIGURATION.mqttConfig)
+        mqttCallback = RadarMQTTCallback(SENSORS, mqttConnection)
 
-        logger.info("Redispubsub is subscribed: {}", redisPubSub.isSubscribed)
+        logger.info("MQTT connection is connected: {}", mqttConnection.isConnected())
 
         Thread.setDefaultUncaughtExceptionHandler(
             LogAndContinueExceptionHandler(
                 "Exception in " +
-                        "${RedisDataHandler::class}"
+                        "${MQTTDataHandler::class}"
             )
         )
     }
@@ -44,19 +43,20 @@ class RedisDataHandler : Handler {
     @Throws(ConfigurationException::class)
     override fun start() {
         val topics = SENSORS.sensors.map { it.config.inputTopic }.toTypedArray()
-        redisSubscriber.subscribe(topics, redisPubSub)
+        mqttConnection.getConnection().setCallback(mqttCallback)
+        mqttConnection.getConnection().subscribe(topics, topics.map { CONFIGURATION.mqttConfig.qos }.toIntArray())
         isRunning = true
     }
 
     override fun stop() {
         logger.info("Stopping ${this::class.java.name}...")
         if (!isRunning) {
-            logger.warn("The Redis Data Handler is not running. Skipping stopping it")
+            logger.warn("The MQTT Data Handler is not running. Skipping stopping it")
             return
         }
         try {
             SENSORS.sensors.forEach {
-                redisPubSub.unsubscribe(it.config.inputTopic)
+                mqttConnection.getConnection().unsubscribe(it.config.inputTopic)
                 it.consumerConverters.forEach { cc -> cc.dataConsumer.close() }
             }
 
@@ -76,6 +76,6 @@ class RedisDataHandler : Handler {
             logger.error("Caught $exception: ${exception.message}", exception)
         }
 
-        private val logger = LoggerFactory.getLogger(RedisDataHandler::class.java)
+        private val logger = LoggerFactory.getLogger(MQTTDataHandler::class.java)
     }
 }

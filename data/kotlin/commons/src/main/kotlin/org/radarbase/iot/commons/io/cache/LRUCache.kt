@@ -69,4 +69,8 @@ class LRUCache<K, V>(
         const val DEFAULT_SIZE = 1000
         const val PRESENT = true
     }
+
+    override fun stop() {
+        delegate.stop()
+    }
 }

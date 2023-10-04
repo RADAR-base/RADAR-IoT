@@ -11,7 +11,7 @@ logger = logging.getLogger('root')
 
 class RedisPublisher(Publisher):
 
-    def __init__(self, connection: RedisConnection,
+    def __init__(self, connection: RedisConnection = RedisConnection(),
                  publisher_thread_pool: ThreadPoolExecutor = ThreadPoolExecutor(max_workers=4)):
         self.redis_client = redis.Redis(connection_pool=connection.get_connection_pool())
         super().__init__(connection, publisher_thread_pool)

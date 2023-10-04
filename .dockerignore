@@ -6,3 +6,9 @@ travis
 
 # ignore venv
 venv
+
+# Ignore kotlin code
+#data
+
+# Ingore docker-compose stacks
+docker

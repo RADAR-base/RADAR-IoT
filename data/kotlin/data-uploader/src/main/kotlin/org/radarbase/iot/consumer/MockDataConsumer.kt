@@ -5,38 +5,16 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.apache.avro.SchemaValidationException
 import org.radarbase.data.RecordData
-import org.radarbase.iot.config.Configuration.Companion.CONFIGURATION
 import org.radarbase.iot.converter.avro.AvroConverter
-import org.radarbase.iot.sender.KafkaAvroDataSender
 import org.slf4j.LoggerFactory
 import java.io.IOException
 
-open class RestProxyDataConsumer : DataConsumer<AvroConverter<*, *>> {
-    private val kafkaDataSender: KafkaAvroDataSender
-
-    constructor(
-        uploadIntervalSeconds: Int,
-        maxCacheSize: Int,
-        kafkaDataSender: KafkaAvroDataSender
-    ) : super(uploadIntervalSeconds, maxCacheSize) {
-        this.kafkaDataSender = kafkaDataSender
-    }
-
-    constructor(
-        uploadIntervalSeconds: Int,
-        maxCacheSize: Int
-    ) : super(uploadIntervalSeconds, maxCacheSize) {
-
-        this.kafkaDataSender = KafkaAvroDataSender(
-            authorizer = null,
-            schemaUrl = CONFIGURATION.radarConfig.schemaRegistryUrl,
-            kafkaUrl = CONFIGURATION.radarConfig.kafkaUrl
-        )
-    }
+open class MockDataConsumer(uploadIntervalSeconds: Int, maxCacheSize: Int) :
+    DataConsumer<AvroConverter<*, *>>(uploadIntervalSeconds, maxCacheSize) {
 
     override fun processData(messages: Map<AvroConverter<*, *>, List<String>>) {
         for ((k, v) in messages) {
-            logger.debug("Converting and sending $v using $k")
+            logger.info("Converting and sending $v using $k")
             try {
                 sendToRestProxy(k.convert(v))
             } catch (exc: IOException) {
@@ -56,13 +34,12 @@ open class RestProxyDataConsumer : DataConsumer<AvroConverter<*, *>> {
 
     override fun close() {
         processData(this.cache.toMap()).also { this.cache.stop() }
-        kafkaDataSender.close()
     }
 
     @Throws(IOException::class)
     open fun <K, V> sendToRestProxy(records: RecordData<K, V>) {
         try {
-            kafkaDataSender.sendAll(records)
+            logger.info("Sending all records, n=${records.size()}")
         } catch (exc: SchemaValidationException) {
             logger.error(
                 "Messages for ${records.topic} could not be sent due to schema " +
